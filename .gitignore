@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist-web/
+obsidian-release/
+*.js.map
+*.d.ts.map
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+.cache/
+.temp/
+tmp/
+
+# AI & Tooling (external)
+.agent/
+.claude/
+.cursor/
+.shared/
+.spec-workflow/
+
+# Obsidian plugin specific
+data.json
+*.obsidian/

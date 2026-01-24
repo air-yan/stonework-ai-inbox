@@ -1,0 +1,32 @@
+{
+    "name": "obsidian-inbox-organizer",
+    "version": "1.0.0",
+    "description": "AI-powered inbox organization for Obsidian",
+    "main": "main.js",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build -c vite.config.prod.mjs",
+        "dev:plugin": "tsc -w"
+    },
+    "dependencies": {
+        "@ai-sdk/openai": "^3.0.12",
+        "@openrouter/ai-sdk-provider": "^1.5.4",
+        "ai": "^6.0.39",
+        "obsidian": "latest",
+        "openai": "^4.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "zod": "^4.3.5"
+    },
+    "devDependencies": {
+        "@types/node": "^16.0.0",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
+        "@vitejs/plugin-react": "^5.1.2",
+        "builtin-modules": "^5.0.0",
+        "esbuild": "^0.27.2",
+        "tslib": "^2.0.0",
+        "typescript": "^5.0.0",
+        "vite": "^5.0.0"
+    }
+}
