@@ -1,7 +1,7 @@
 {
-    "name": "inbox-ai-organizer",
+    "name": "stonework-ai-inbox",
     "version": "0.1.0",
-    "description": "AI-powered inbox organization for Obsidian",
+    "description": "Your AI-powered Second Brain: Inbox organization, Chat, and more.",
     "main": "main.js",
     "scripts": {
         "dev": "vite",

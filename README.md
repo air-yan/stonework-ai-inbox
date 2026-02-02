@@ -1,4 +1,4 @@
-# Inbox AI Organizer
+# Stonework AI: Inbox
 
 [English](#english) | [中文](#中文)
 
@@ -8,7 +8,7 @@
 
 ### Overview
 
-Inbox AI Organizer is an AI-powered Obsidian plugin that helps you automatically organize your notes. It analyzes the content of files in your Inbox folder and provides intelligent classification suggestions based on the PARA methodology (Projects, Areas, Resources, Archives).
+Stonework AI: Inbox is an AI-powered Obsidian plugin that helps you automatically organize your notes. It analyzes the content of files in your Inbox folder and provides intelligent classification suggestions based on the PARA methodology (Projects, Areas, Resources, Archives).
 
 ### Features
 
@@ -22,13 +22,13 @@ Inbox AI Organizer is an AI-powered Obsidian plugin that helps you automatically
 ### Installation
 
 1. Download the latest release from the releases page
-2. Extract the files to your vault's `.obsidian/plugins/inbox-ai-organizer/` folder
+2. Extract the files to your vault's `.obsidian/plugins/stonework-ai-inbox/` folder
 3. Reload Obsidian
-4. Enable "Inbox AI Organizer" in Settings > Community Plugins
+4. Enable "Stonework AI: Inbox" in Settings > Community Plugins
 
 ### Configuration
 
-1. Go to Settings > Inbox AI Organizer
+1. Go to Settings > Stonework AI: Inbox
 2. Configure your AI provider:
    - **API Key**: Your OpenRouter or OpenAI API key
    - **Base URL**: Custom API endpoint (leave empty for OpenAI default)
@@ -69,7 +69,7 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 
 ### 概述
 
-Inbox AI Organizer 是一个 AI 驱动的 Obsidian 插件，帮助你自动整理笔记。它会分析 Inbox 文件夹中的文件内容，并基于 PARA 方法论（Projects、Areas、Resources、Archives）提供智能分类建议。
+Stonework AI: Inbox 是一个 AI 驱动的 Obsidian 插件，帮助你自动整理笔记。它会分析 Inbox 文件夹中的文件内容，并基于 PARA 方法论（Projects、Areas、Resources、Archives）提供智能分类建议。
 
 ### 功能特性
 
@@ -83,13 +83,13 @@ Inbox AI Organizer 是一个 AI 驱动的 Obsidian 插件，帮助你自动整�
 ### 安装
 
 1. 从 releases 页面下载最新版本
-2. 将文件解压到你的 vault 的 `.obsidian/plugins/inbox-ai-organizer/` 文件夹
+2. 将文件解压到你的 vault 的 `.obsidian/plugins/stonework-ai-inbox/` 文件夹
 3. 重新加载 Obsidian
-4. 在 设置 > 社区插件 中启用 "Inbox AI Organizer"
+4. 在 设置 > 社区插件 中启用 "Stonework AI: Inbox"
 
 ### 配置
 
-1. 进入 设置 > Inbox AI Organizer
+1. 进入 设置 > Stonework AI: Inbox
 2. 配置 AI 服务：
    - **API Key**：你的 OpenRouter 或 OpenAI API 密钥
    - **Base URL**：自定义 API 端点（留空使用 OpenAI 默认值）
@@ -128,5 +128,5 @@ Inbox AI Organizer 是一个 AI 驱动的 Obsidian 插件，帮助你自动整�
 
 ## Support
 
-- Report issues: [GitHub Issues](https://github.com/your-repo/inbox-ai-organizer/issues)
-- Feature requests: [GitHub Discussions](https://github.com/your-repo/inbox-ai-organizer/discussions)
+- Report issues: [GitHub Issues](https://github.com/air-yan/stonework-ai-inbox/issues)
+- Feature requests: [GitHub Discussions](https://github.com/air-yan/stonework-ai-inbox/discussions)

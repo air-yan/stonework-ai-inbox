@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
 import { FileMetadata, OrganizationSuggestion } from '../adapters/types';
 
+/**
+ * @deprecated This service is deprecated. Use PARAService for AI-powered classification instead.
+ */
 export class OpenAIService {
     private client: OpenAI | null = null;
 
@@ -25,8 +28,6 @@ export class OpenAIService {
     async generateSuggestions(files: FileMetadata[]): Promise<OrganizationSuggestion[]> {
         if (!this.client) {
             // Return mock data if no client configured (for dev/demo without keys)
-            // or throw error? For Web-First dev, mock is better.
-            console.warn("OpenAI Client not initialized, returning mock suggestions.");
             return this.mockSuggestions(files);
         }
 
