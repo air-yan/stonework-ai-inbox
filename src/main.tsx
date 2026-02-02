@@ -95,6 +95,25 @@ export default class InboxPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+        // Refresh all open views to apply new settings
+        this.refreshAllViews();
+    }
+
+    refreshAllViews() {
+        // Refresh Inbox views
+        this.app.workspace.getLeavesOfType(VIEW_TYPE_INBOX).forEach(leaf => {
+            const view = leaf.view as InboxViewLeaf;
+            if (view && view.refresh) {
+                view.refresh();
+            }
+        });
+        // Refresh Chat views
+        this.app.workspace.getLeavesOfType(VIEW_TYPE_CHAT).forEach(leaf => {
+            const view = leaf.view as ChatView;
+            if (view && view.refresh) {
+                view.refresh();
+            }
+        });
     }
 
     async activateView() {
@@ -153,29 +172,38 @@ class InboxViewLeaf extends ItemView {
         return 'Inbox organizer';
     }
 
+    private getAiConfig() {
+        return {
+            apiKey: this.plugin.settings.apiKey,
+            baseURL: this.plugin.settings.baseURL,
+            modelName: this.plugin.settings.modelName,
+            language: this.plugin.settings.language
+        };
+    }
+
     async onOpen() {
         const container = this.containerEl.children[1];
         container.empty();
         const reactContainer = container.createDiv();
         this.root = createRoot(reactContainer);
+        this.renderView();
+    }
 
-        // Inject Adapter and Settings
-        // Note: In a real app we might pass settings/setSettings down or use Context
-        // For now, simpler props
-        const aiConfig = {
-            apiKey: this.plugin.settings.apiKey,
-            baseURL: this.plugin.settings.baseURL,
-            modelName: this.plugin.settings.modelName,
-            language: this.plugin.settings.language // Pass language to View
-        };
+    private renderView() {
+        if (!this.root) return;
 
         this.root.render(
             <InboxView
                 adapter={this.adapter}
-                aiConfig={aiConfig}
+                aiConfig={this.getAiConfig()}
                 inboxPath={this.plugin.settings.inboxPath}
             />
         );
+    }
+
+    // Called when settings change to refresh the view
+    refresh() {
+        this.renderView();
     }
 
     async onClose() {

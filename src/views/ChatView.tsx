@@ -36,6 +36,12 @@ export class ChatView extends ItemView {
         );
     }
 
+    // Called when settings change to refresh the view
+    refresh() {
+        // Update AI service config with new settings
+        this.aiService.updateConfig(this.plugin.settings);
+    }
+
     async onClose() {
         if (this.root) {
             this.root.unmount();
