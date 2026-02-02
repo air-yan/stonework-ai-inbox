@@ -169,7 +169,7 @@ class InboxViewLeaf extends ItemView {
     }
 
     getDisplayText() {
-        return 'Inbox organizer';
+        return 'Stonework AI: Inbox';
     }
 
     private getAiConfig() {

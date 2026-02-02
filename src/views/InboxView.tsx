@@ -180,9 +180,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <div className="inbox-view">
                 <div className="inbox-view-header">
-                    <h1>Inbox organizer <span className="version">v0.1.0</span></h1>
+                    <h1>Stonework AI: Inbox <span className="version">v0.1.0</span></h1>
                 <div className="inbox-view-actions">
-                    {loading && (
+                    {/* Batch scan button - hidden for future Pro feature */}
+                    {/* {loading && (
                         <span className="inbox-view-status">
                             Scanning {scanningPaths.length} files...
                         </span>
@@ -207,7 +208,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
                         </svg>
                         <span className="btn-text">{t.scanAllBtn}</span>
                         <span className="btn-pro-badge">Pro</span>
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
