@@ -4,6 +4,11 @@
 
 ## 变更记录 (Changelog)
 
+### 2026-01-27
+- 补充 AIService 流式聊天服务文档
+- 更新 PARAService 文档（真实 AI 调用已实现）
+- 标记 OpenAIService 为废弃状态
+
 ### 2026-01-17
 - 初始化模块文档
 - 分析 OpenAI 服务实现与 Mock 策略
@@ -12,11 +17,19 @@
 
 ## 模块职责
 
-**服务模块**负责封装外部 API 调用与业务逻辑，目前包含：
+**服务模块**负责封装外部 API 调用与业务逻辑，目前包含三个服务：
 
-- **OpenAIService**：封装 OpenAI API 调用，提供 AI 分类建议生成功能
-  - 当前实现：Mock 数据（关键词分析）
-  - 预留接口：真实 LLM 调用（待实现）
+- **PARAService**：文件分类分析服务（基于 PARA 方法论）
+  - 真实 AI 调用（OpenRouter + AI SDK）
+  - 结构化 JSON 输出
+  - 中英文支持
+
+- **AIService**：通用流式聊天服务
+  - 流式响应（实时打字效果）
+  - 上下文窗口管理
+  - 多模型支持（通过 OpenRouter）
+
+- **OpenAIService**：旧版服务（已废弃，仅保留 Mock 数据）
 
 该模块是连接业务逻辑与 AI 能力的桥梁，负责：
 1. 管理 API 客户端初始化与配置
@@ -28,63 +41,137 @@
 
 ## 入口与启动
 
-### OpenAIService 类
+### PARAService 类
 
 ```typescript
-export class OpenAIService {
-  constructor(apiKey?: string, baseURL?: string)
-  updateConfig(apiKey: string, baseURL?: string): void
-  async generateSuggestions(files: FileMetadata[]): Promise<OrganizationSuggestion[]>
-  private mockSuggestions(files: FileMetadata[]): OrganizationSuggestion[]
+export class PARAService {
+  constructor(config: AIConfig)
+  updateConfig(config: AIConfig): void
+  async analyzeDocument(
+    documentContent: string,
+    allTags: string[],
+    folderTree: string
+  ): Promise<PARAAnalysisResult>
 }
+
+interface AIConfig {
+  apiKey: string;
+  baseURL: string;
+  modelName: string;
+  language?: 'en' | 'zh';
+}
+
+interface PARAAnalysisResult {
+  folderSuggestions: FolderSuggestion[];  // 3 个文件夹选项
+  tags: string[];
+  newTags?: string[];
+  reason: string;
+}
+```
+
+### AIService 类
+
+```typescript
+export class AIService {
+  constructor(config: AIConfig)
+  updateConfig(config: AIConfig): void
+  async streamChat(
+    messages: CoreMessage[],
+    onDelta: (chunk: string) => void,
+    onError: (err: any) => void
+  ): Promise<void>
+}
+
+type CoreMessage = SystemModelMessage | UserModelMessage | AssistantModelMessage | ToolModelMessage;
 ```
 
 ### 初始化方式
 
-**当前实现**：
 ```typescript
-// 无 API Key 时使用 Mock 模式
-const llmService = new OpenAIService();
+// PARAService
+const paraService = new PARAService({
+  apiKey: 'sk-...',
+  baseURL: 'https://openrouter.ai/api/v1',
+  modelName: 'anthropic/claude-3.5-sonnet',
+  language: 'zh'
+});
 
-// 传入 API Key 后可切换到真实调用
-llmService.updateConfig('sk-...', 'https://api.openai.com/v1');
+// AIService
+const aiService = new AIService({
+  apiKey: 'sk-...',
+  baseURL: 'https://openrouter.ai/api/v1',
+  modelName: 'deepseek/deepseek-chat'
+});
 ```
-
-**配置来源**：从插件设置中读取（`PluginSettings.apiKey`、`PluginSettings.baseURL`）
 
 ---
 
 ## 对外接口
 
-### generateSuggestions 方法
+### PARAService.analyzeDocument
 
-**功能**：分析文件列表，生成分类建议
+**功能**：分析单个文档，生成 PARA 分类建议
 
 **参数**：
 ```typescript
-files: FileMetadata[]  // 从 Inbox 读取的文件列表
+documentContent: string  // 文档内容
+allTags: string[]        // 现有标签列表
+folderTree: string       // 文件夹树结构
 ```
 
 **返回值**：
 ```typescript
-Promise<OrganizationSuggestion[]>  // 每个文件的分类建议
+Promise<PARAAnalysisResult>  // 分类建议
 ```
 
 **示例**：
 ```typescript
-const files = [
-  { path: 'Inbox/Note1.md', name: 'Note1.md', content: 'Meeting about project Alpha' }
+const result = await paraService.analyzeDocument(
+  'Meeting notes about project Alpha',
+  ['#work', '#todo', '#project'],
+  '- Projects/\n  - Project-Alpha/\n- Areas/\n  - Work/'
+);
+// 返回：
+// {
+//   folderSuggestions: [
+//     { folder: 'Projects/Project-Alpha', isNew: false, reason: '匹配现有项目' },
+//     { folder: 'Areas/Work', isNew: false, reason: '工作相关' },
+//     { folder: 'Projects/New-Project', isNew: true, reason: '建议创建新项目' }
+//   ],
+//   tags: ['#work', '#project'],
+//   newTags: ['#project'],
+//   reason: '内容关于项目 Alpha 会议，适合放在项目文件夹下'
+// }
+```
+
+### AIService.streamChat
+
+**功能**：流式聊天对话
+
+**参数**：
+```typescript
+messages: CoreMessage[]  // 消息历史
+onDelta: (chunk: string) => void  // 流式回调
+onError: (err: any) => void  // 错误回调
+```
+
+**返回值**：
+```typescript
+Promise<void>  // 通过回调异步返回结果
+```
+
+**示例**：
+```typescript
+const messages: CoreMessage[] = [
+  { role: 'system', content: 'You are a helpful assistant.' },
+  { role: 'user', content: 'Hello!' }
 ];
 
-const suggestions = await llmService.generateSuggestions(files);
-// 返回：
-// [{
-//   path: 'Inbox/Note1.md',
-//   targetFolder: '2. Areas/Projects',
-//   tags: ['#work'],
-//   area: 'Project Alpha',
-//   reason: 'Keyword analysis (Mock)'
-// }]
+await aiService.streamChat(
+  messages,
+  (chunk) => console.log('收到:', chunk),  // 实时输出
+  (err) => console.error('错误:', err)
+);
 ```
 
 ---
@@ -94,46 +181,55 @@ const suggestions = await llmService.generateSuggestions(files);
 ### 外部依赖
 
 ```typescript
-import OpenAI from 'openai';
-import { FileMetadata, OrganizationSuggestion } from '../adapters/types';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { generateText } from 'ai';  // PARAService
+import { streamText } from 'ai';     // AIService
 ```
 
 ### 配置要求
 
 **必需**：
-- `apiKey`: OpenAI API Key（或兼容服务的 Key）
+- `apiKey`: OpenRouter/OpenAI API Key
+- `modelName`: 模型名称（如 `deepseek/deepseek-chat`）
 
 **可选**：
-- `baseURL`: 自定义 API 端点（用于兼容 OpenAI 代理服务）
+- `baseURL`: 自定义 API 端点（默认 OpenRouter）
+- `language`: 界面语言（`en` 或 `zh`）
 
 **当前行为**：
-- 无 API Key 时自动降级到 Mock 模式（返回基于关键词的建议）
-- 有 API Key 但未实现真实调用（预留接口）
+- PARAService：真实 AI 调用（已实现）
+- AIService：真实流式响应（已实现）
+- OpenAIService：Mock 数据（已废弃）
 
 ---
 
 ## 数据模型
 
-### OrganizationSuggestion（输出）
+### PARAAnalysisResult（PARAService 输出）
 
 ```typescript
-interface OrganizationSuggestion {
-  path: string;          // 源文件路径（与输入对应）
-  targetFolder: string;  // 目标文件夹路径
+interface PARAAnalysisResult {
+  folderSuggestions: FolderSuggestion[];  // 3 个文件夹选项
   tags: string[];        // 推荐标签（如 ['#work', '#todo']）
-  area?: string;         // PARA 方法中的 Area（可选）
-  reason?: string;       // AI 推理说明（为何这样分类）
+  newTags?: string[];    // 仅包含新创建的标签
+  reason: string;        // AI 推理说明
+}
+
+interface FolderSuggestion {
+  folder: string;    // 完整路径（如 "Projects/Alpha"）
+  isNew: boolean;    // 是否是新文件夹
+  reason: string;    // 推荐理由
 }
 ```
 
-### FileMetadata（输入）
+### CoreMessage（AIService 输入）
 
 ```typescript
-interface FileMetadata {
-  path: string;      // 文件路径
-  name: string;      // 文件名
-  content: string;   // 文件完整内容
-}
+type CoreMessage =
+  | { role: 'system'; content: string }
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string }
+  | { role: 'tool'; content: any };  // 工具调用结果
 ```
 
 ---
@@ -144,283 +240,303 @@ interface FileMetadata {
 
 **建议补充**：
 
-### 单元测试示例
+### PARAService 测试
 
 ```typescript
-describe('OpenAIService', () => {
-  it('should return mock suggestions when no API key', async () => {
-    const service = new OpenAIService();
-    const files = [
-      { path: 'Inbox/test.md', name: 'test.md', content: 'project update' }
-    ];
-    const suggestions = await service.generateSuggestions(files);
-    expect(suggestions).toHaveLength(1);
-    expect(suggestions[0].targetFolder).toBe('2. Areas/Projects');
+import { describe, it, expect, vi } from 'vitest';
+import { PARAService } from './PARAService';
+
+describe('PARAService', () => {
+  it('should parse JSON response correctly', async () => {
+    const service = new PARAService({
+      apiKey: 'test-key',
+      baseURL: 'https://api.test.com',
+      modelName: 'test-model'
+    });
+
+    // Mock AI SDK
+    vi.mock('ai', () => ({
+      generateText: async () => ({
+        text: JSON.stringify({
+          folderSuggestions: [
+            { folder: 'Projects/Test', isNew: false, reason: 'Test' }
+          ],
+          tags: ['#test'],
+          newTags: [],
+          reason: 'Test reason'
+        })
+      })
+    }));
+
+    const result = await service.analyzeDocument('Test content', [], '');
+    expect(result.folderSuggestions).toHaveLength(1);
+    expect(result.folderSuggestions[0].folder).toBe('Projects/Test');
   });
 
-  it('should use real API when configured', async () => {
-    const service = new OpenAIService('sk-test');
-    // Mock OpenAI client
-    const spy = jest.spyOn(service, 'client').mockResolvedValue({ ... });
-    // 验证调用
+  it('should handle malformed JSON gracefully', async () => {
+    const service = new PARAService({ /* ... */ });
+    // Mock 返回无效 JSON
+    const result = await service.analyzeDocument('Test', [], '');
+    expect(result.folderSuggestions).toEqual([]);
+    expect(result.reason).toContain('无法解析');
   });
 });
 ```
 
-### 集成测试建议
+### AIService 测试
 
-- 使用 OpenAI 测试 API Key 验证真实调用
-- 测试错误场景（API 限流、网络错误、超时）
-- 验证返回数据格式正确性
+```typescript
+import { AIService } from './AIService';
+
+describe('AIService', () => {
+  it('should stream chat response', async () => {
+    const service = new AIService({
+      apiKey: 'test-key',
+      baseURL: 'https://api.test.com',
+      modelName: 'test-model'
+    });
+
+    const chunks: string[] = [];
+    const onDelta = (chunk: string) => chunks.push(chunk);
+
+    // Mock streamText
+    vi.mock('ai', () => ({
+      streamText: async () => ({
+        textStream: (async function* () {
+          yield 'Hello';
+          yield ' World';
+        })()
+      })
+    }));
+
+    await service.streamChat(
+      [{ role: 'user', content: 'Hi' }],
+      onDelta,
+      () => {}
+    );
+
+    expect(chunks).toEqual(['Hello', ' World']);
+  });
+
+  it('should handle errors', async () => {
+    const service = new AIService({ /* ... */ });
+    const onError = vi.fn();
+
+    // Mock 抛出错误
+    await service.streamChat(
+      [{ role: 'user', content: 'Hi' }],
+      () => {},
+      onError
+    );
+
+    expect(onError).toHaveBeenCalled();
+  });
+});
+```
 
 ---
 
 ## 实现细节
 
-### 当前实现：Mock 模式
+### PARAService 核心逻辑
+
+#### System Prompt 构建
 
 ```typescript
-private mockSuggestions(files: FileMetadata[]): OrganizationSuggestion[] {
-  return files.map(f => ({
-    path: f.path,
-    targetFolder: f.content.includes('project') ? '2. Areas/Projects' : 'Resources',
-    tags: f.content.includes('milk') ? ['#personal', '#todo'] : ['#work'],
-    area: f.content.includes('project') ? 'Project Alpha' : undefined,
-    reason: 'Keyword analysis (Mock)'
-  }));
-}
-```
+const getSystemPrompt = (language: 'en' | 'zh') => {
+  const langInstruction = language === 'en'
+    ? '4. **Language**: Output analysis and reasons in English.'
+    : '4. **语言**：分析和原因说明使用中文。';
 
-**逻辑**：
-- 简单关键词匹配（`includes`）
-- 硬编码分类规则（'project' → Projects，'milk' → Personal）
+  return `# 📦 PARA 整理与标签推荐助手（CODE·Organize）
 
-**局限**：
-- 无法理解语义（如 "alpha initiative" 也会被识别为项目）
-- 无上下文理解（无法根据已有目录结构推荐）
-- 无法处理复杂场景（多主题文件）
+## 核心任务
+基于用户提供的 Vault 信息（标签列表、文件夹树）和当前文档内容，输出 JSON 格式的分类建议。
 
-### 待实现：真实 LLM 调用
+## 工作逻辑
+1. **分析文档**：理解文档的核心主题。
+2. **匹配路径**：
+   - **优先复用**：在提供的 FolderTree 中寻找最合适的现有文件夹。
+   - **新建路径**：如果现有路径均不合适（例如属于全新的项目或领域），则建议一个新的路径。
+   - **区分新旧**：明确标记推荐的路径是现有的还是需要新建的。
+3. **匹配标签**：
+   - **优先复用**：从提供的标签列表中选择。
+   - **新建标签**：必要时创建新标签（使用 kebab-case）。
 
-**TODO 位置**：`OpenAIService.ts:33-35`
-
-```typescript
-// TODO: Implement real LLM Call with Structured Output
-// For now, returning mock to save tokens as per plan
-return this.mockSuggestions(files);
-```
-
-**建议实现方案**：
-
-#### 方案 1：Structured Output（推荐）
-
-```typescript
-async generateSuggestions(files: FileMetadata[]): Promise<OrganizationSuggestion[]> {
-  if (!this.client) return this.mockSuggestions(files);
-
-  const response = await this.client.responses.create({
-    model: 'gpt-4o-mini',
-    input: files.map(f => ({
-      role: 'user',
-      content: `Analyze this note and suggest organization:\n${f.content}`
-    })),
-    text: {
-      format: {
-        type: 'json_schema',
-        name: 'organization_suggestions',
-        schema: {
-          type: 'object',
-          properties: {
-            suggestions: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  path: { type: 'string' },
-                  targetFolder: { type: 'string' },
-                  tags: { type: 'array', items: { type: 'string' } },
-                  area: { type: 'string' },
-                  reason: { type: 'string' }
-                },
-                required: ['path', 'targetFolder', 'tags', 'reason']
-              }
-            }
-          },
-          required: ['suggestions']
-        }
-      }
-    }
-  });
-
-  return JSON.parse(response.output[0].content[0].text).suggestions;
-}
-```
-
-**优势**：
-- 强制 JSON 格式，无需手动解析
-- 减少 Token 消耗（无需在 Prompt 中反复强调格式）
-- 降低出错概率
-
-#### 方案 2：Function Calling
-
-```typescript
-const response = await this.client.chat.completions.create({
-  model: 'gpt-4o-mini',
-  messages: [
-    {
-      role: 'system',
-      content: 'You are a knowledge management assistant...'
-    },
-    {
-      role: 'user',
-      content: `Analyze these notes:\n${JSON.stringify(files)}`
-    }
-  ],
-  functions: [
-    {
-      name: 'suggest_organization',
-      description: 'Suggest file organization',
-      parameters: {
-        type: 'object',
-        properties: {
-          suggestions: {
-            type: 'array',
-            items: { /* ... */ }
-          }
-        }
-      }
-    }
-  ],
-  function_call: { name: 'suggest_organization' }
-});
-```
-
-#### 方案 3：传统 Prompt + 解析
-
-```typescript
-const prompt = `
-Analyze these notes and suggest organization in JSON format:
-${files.map(f => `- ${f.name}: ${f.content}`).join('\n')}
-
-Output format:
-[
-  {
-    "path": "Inbox/Note1.md",
-    "targetFolder": "Projects/Alpha",
-    "tags": ["#work"],
-    "area": "Project Alpha",
-    "reason": "Keywords: project, alpha"
-  }
-]
-`;
-
-const response = await this.client.chat.completions.create({
-  model: 'gpt-4o-mini',
-  messages: [{ role: 'user', content: prompt }]
-});
-
-const content = response.choices[0].message.content;
-return JSON.parse(content);
-```
-
-**局限**：
-- 需要手动解析 JSON（易出错）
-- 需要在 Prompt 中强调格式
-- 需要 try-catch + 重试机制
-
-### 错误处理策略
-
-**当前实现**：
-- 无 API Key 时降级到 Mock
-- API 错误时直接 `console.error`
-
-**建议增强**：
-
-```typescript
-async generateSuggestions(files: FileMetadata[]): Promise<OrganizationSuggestion[]> {
-  try {
-    if (!this.client) {
-      console.warn("OpenAI Client not initialized, returning mock suggestions.");
-      return this.mockSuggestions(files);
-    }
-
-    const response = await this.client.responses.create({ /* ... */ });
-    return parseResponse(response);
-  } catch (error) {
-    if (error instanceof OpenAI.APIError) {
-      if (error.status === 429) {
-        throw new Error('API rate limit exceeded. Please try again later.');
-      }
-      if (error.status === 401) {
-        throw new Error('Invalid API key. Please check your settings.');
-      }
-    }
-    // 降级到 Mock
-    console.error('AI analysis failed, falling back to keyword analysis:', error);
-    return this.mockSuggestions(files);
-  }
-}
-```
-
----
-
-## Prompt 设计建议
-
-### 系统提示词（System Prompt）
-
-```typescript
-const SYSTEM_PROMPT = `
-You are a knowledgeable assistant for organizing digital notes using the PARA method.
-
-**PARA Method**:
-- **Projects**: Short-term efforts with a goal (e.g., "Launch website v2")
-- **Areas**: Long-term responsibilities (e.g., "Health", "Finances")
-- **Resources**: Topics of ongoing interest (e.g., "Investment strategies")
-- **Archives**: Completed or inactive items
-
-**Your Task**:
-Analyze each note and suggest:
-1. **targetFolder**: Where to move it (e.g., "Projects/Website Redesign")
-2. **tags**: Relevant hashtags (e.g., #work, #ux-design)
-3. **area**: Which Area it belongs to (if applicable)
-4. **reason**: Brief explanation of your decision
-
-**Constraints**:
-- Use existing folder structure when possible
-- Tags should be concise and reusable
-- Area should link to existing MOC files if available
-- Output MUST be valid JSON matching the provided schema
-`;
-```
-
-### 用户提示词构建
-
-```typescript
-const buildUserPrompt = (files: FileMetadata[], existingFolders: string[]) => {
-  return `
-**Existing Folders**:
-${existingFolders.join('\n')}
-
-**Notes to Organize**:
-${files.map(f => `
-### ${f.name}
-Path: ${f.path}
-Content:
-${f.content}
----
-`).join('\n')}
-
-Please analyze these notes and provide organization suggestions.
+## 约束与规则
+1. **JSON 输出**：必须输出合法的 JSON 格式，不要包含 Markdown 代码块标记（如 \`\`\`json）。
+2. **数量限制**：提供 3 个文件夹建议，最多 3 个标签建议。
+3. **命名规范**：新文件夹建议 3-6 字，动宾或名词短语。
+${langInstruction}
 `;
 };
 ```
 
-### 优化建议
+**特点**：
+- 结构化 Prompt（引导 AI 输出特定格式）
+- 多语言支持（动态插入语言指令）
+- PARA 方法论嵌入（优先复用、区分新旧）
 
-1. **上下文感知**：传入现有目录结构，避免推荐不存在的文件夹
-2. **少样本学习**：在 Prompt 中提供示例（Few-shot Learning）
-3. **渐进式分析**：先批量提取关键词，再调用 LLM 分类
-4. **成本控制**：使用 `gpt-4o-mini` 降低成本，或使用本地模型
+#### User Prompt 构建
+
+```typescript
+private buildUserPrompt(documentContent: string, allTags: string[], folderTree: string): string {
+  return `## 当前 Vault 信息
+
+**现有标签列表**:
+${allTags.length > 0 ? allTags.join(', ') : '(暂无标签)'}
+
+**现有文件夹结构 (Folder Tree)**:
+${folderTree}
+
+## 待分析文档内容
+
+\`\`\`markdown
+${documentContent}
+\`\`\`
+
+请输出 JSON 格式的 PARA 分类建议。`;
+}
+```
+
+**特点**：
+- 上下文信息完整（标签 + 文件夹树）
+- Markdown 代码块包裹（避免格式混乱）
+
+#### JSON 解析与验证
+
+```typescript
+private parseJSONResponse(jsonText: string): PARAAnalysisResult {
+  try {
+    // 清理可能的 Markdown 标记
+    const cleanedText = jsonText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    const parsed = JSON.parse(cleanedText);
+
+    // 转换并验证结构
+    const folderSuggestions = Array.isArray(parsed.folderSuggestions)
+      ? parsed.folderSuggestions.map((s: any) => ({
+          folder: s.folder || '',
+          reason: s.reason || '',
+          isNew: !!s.isNew
+        }))
+      : [];
+
+    const tags = Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : [];
+    const newTags = Array.isArray(parsed.newTags) ? parsed.newTags.slice(0, 3) : [];
+    const reason = parsed.reason || '';
+
+    return { folderSuggestions, tags, newTags, reason };
+  } catch (e) {
+    console.error('[PARAService] JSON Parse Error:', e);
+    return {
+      folderSuggestions: [],
+      tags: [],
+      reason: '无法解析 AI 返回的 JSON 数据'
+    };
+  }
+}
+```
+
+**容错机制**：
+- 清理 Markdown 代码块标记
+- 限制标签数量（最多 3 个）
+- 提供默认值（空数组、空字符串）
+- 捕获解析错误
+
+### AIService 核心逻辑
+
+#### 流式响应
+
+```typescript
+async streamChat(messages: CoreMessage[], onDelta: (chunk: string) => void, onError: (err: any) => void) {
+  try {
+    const openrouter = createOpenRouter({
+      apiKey: this.config.apiKey,
+      baseURL: this.config.baseURL || 'https://openrouter.ai/api/v1',
+    });
+
+    const model = openrouter(this.config.modelName);
+
+    const result = await streamText({
+      model: model,
+      messages: messages,
+    });
+
+    for await (const delta of result.textStream) {
+      onDelta(delta);
+    }
+  } catch (error) {
+    onError(error);
+  }
+}
+```
+
+**流程**：
+1. 初始化 OpenRouter provider
+2. 调用 `streamText`（AI SDK）
+3. 使用 `for await` 循环读取流式数据
+4. 每次收到 chunk 时调用 `onDelta`
+5. 错误时调用 `onError`
+
+**注意**：
+- 消息格式直接传递给 AI SDK（CoreMessage[]）
+- 不做额外清理或验证（依赖 provider 处理）
+
+#### 上下文窗口管理
+
+在 `ChatPanel.tsx` 中实现：
+
+```typescript
+// 滑动窗口：保留最近 15 条消息
+const contextMessages = newHistory.slice(-15);
+
+await aiService.streamChat(
+  contextMessages,
+  (delta) => { /* 更新 UI */ },
+  (err) => { /* 处理错误 */ }
+);
+```
+
+**优势**：
+- 限制上下文长度（节省 Token）
+- 保留最近对话历史（连贯性）
+- 自动裁剪旧消息（防止超限）
+
+### OpenAIService（废弃）
+
+**当前实现**：Mock 数据（关键词匹配）
+
+```typescript
+private mockSuggestions(files: FileMetadata[]): OrganizationSuggestion[] {
+  return files.map(f => {
+    const isProject = f.content.includes('project');
+    const isPersonal = f.content.includes('milk') || f.content.includes('personal');
+
+    return {
+      path: f.path,
+      folderSuggestions: [
+        {
+          folder: isProject ? '2. Areas/Projects' : 'Resources/Notes',
+          reason: isProject ? '内容包含项目相关关键词' : '一般性笔记内容'
+        },
+        // ... 更多建议
+      ],
+      selectedFolderIndex: 0,
+      tags: isPersonal ? ['#personal', '#todo'] : ['#work'],
+      area: isProject ? 'Project Alpha' : undefined
+    };
+  });
+}
+```
+
+**废弃原因**：
+- 已被 PARAService 替代（真实 AI 调用）
+- Mock 逻辑过于简单（无语义理解）
+- 不建议继续使用
 
 ---
 
@@ -428,45 +544,113 @@ Please analyze these notes and provide organization suggestions.
 
 ### 批量处理
 
-**当前实现**：一次性发送所有文件
-
-**优化方案**：
+**当前实现**（InboxView.tsx）：
 
 ```typescript
-// 分批处理（每批 10 个文件）
-async generateSuggestions(files: FileMetadata[]): Promise<OrganizationSuggestion[]> {
-  const BATCH_SIZE = 10;
-  const results: OrganizationSuggestion[] = [];
+const handleScanAll = async () => {
+  const batchSize = 3;
+  for (let i = 0; i < filesToScan.length; i += batchSize) {
+    const batch = filesToScan.slice(i, i + batchSize);
+    await Promise.all(batch.map(f => handleScanRow(f.path, f.content)));
+  }
+};
+```
 
-  for (let i = 0; i < files.length; i += BATCH_SIZE) {
-    const batch = files.slice(i, i + BATCH_SIZE);
-    const suggestions = await this.processBatch(batch);
-    results.push(...suggestions);
+**特点**：
+- 每批 3 个并发请求
+- 避免同时发送过多请求（API 限流）
+- 串行批次处理（等待上一批完成）
+
+**优化建议**：
+- 动态调整批次大小（根据文件数量）
+- 失败重试机制（跳过失败的单个文件）
+- 进度条显示（当前批次/总批次）
+
+### 缓存策略
+
+**建议实现**：
+
+```typescript
+class PARAService {
+  private cache = new Map<string, PARAAnalysisResult>();
+
+  async analyzeDocument(content: string, tags: string[], tree: string) {
+    // 生成缓存键
+    const cacheKey = this.hashContent(content);
+
+    if (this.cache.has(cacheKey)) {
+      console.log('[PARAService] Cache hit');
+      return this.cache.get(cacheKey)!;
+    }
+
+    const result = await this.callAI(content, tags, tree);
+    this.cache.set(cacheKey, result);
+    return result;
   }
 
-  return results;
+  private hashContent(content: string): string {
+    // 简单哈希（生产环境建议用 crypto）
+    return content.slice(0, 100).replace(/\s/g, '');
+  }
 }
 ```
 
-### 流式输出
+**优势**：
+- 避免重复分析相同内容
+- 减少 API 调用次数
+- 提升响应速度
+
+---
+
+## 错误处理
+
+### 当前实现
+
+**PARAService**：
 
 ```typescript
-// 使用 Streaming API 提升用户体验
-async generateSuggestionsStream(
-  files: FileMetadata[],
-  onProgress: (suggestion: OrganizationSuggestion) => void
-): Promise<OrganizationSuggestion[]> {
-  const stream = await this.client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: buildPrompt(files) }],
-    stream: true
-  });
+try {
+  const { text } = await generateText({ /* ... */ });
+  return this.parseJSONResponse(text);
+} catch (error) {
+  console.error('[PARAService] Analysis failed:', error);
+  return {
+    folderSuggestions: [],
+    tags: [],
+    reason: `分析失败: ${error instanceof Error ? error.message : 'Unknown error'}`
+  };
+}
+```
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content;
-    if (content) {
-      const parsed = parseStreamingJSON(content);
-      if (parsed) onProgress(parsed);
+**AIService**：
+
+```typescript
+try {
+  // 流式响应
+} catch (error) {
+  onError(error);  // 传递给调用方处理
+}
+```
+
+### 建议增强
+
+```typescript
+class PARAService {
+  async analyzeDocument(/* ... */) {
+    try {
+      return await this.callAI(/* ... */);
+    } catch (error) {
+      if (error instanceof APIError) {
+        if (error.status === 429) {
+          throw new Error('API rate limit exceeded. Please try again later.');
+        }
+        if (error.status === 401) {
+          throw new Error('Invalid API key. Please check your settings.');
+        }
+      }
+      // 降级到关键词匹配
+      console.warn('[PARAService] AI failed, falling back to keyword analysis');
+      return this.fallbackAnalysis(content);
     }
   }
 }
@@ -476,17 +660,20 @@ async generateSuggestionsStream(
 
 ## 常见问题 (FAQ)
 
-**Q: 为什么当前使用 Mock 而非真实 API？**
-A: 开发初期为了节省 Token 成本并加快迭代速度。Mock 模式足以验证 UI 和交互逻辑。
+**Q: PARAService 和 AIService 有什么区别？**
+A: PARAService 专门用于文件分类（结构化 JSON 输出），AIService 是通用聊天服务（流式文本输出）。
 
-**Q: 如何切换到真实 API？**
-A: 在插件设置中配置 API Key 和 Base URL，然后实现 `generateSuggestions` 中的真实调用逻辑。
+**Q: 为什么使用 OpenRouter 而非直接 OpenAI？**
+A: OpenRouter 支持多模型（Claude、DeepSeek、本地模型等），且价格更灵活。
 
-**Q: 支持其他 LLM 提供商吗？**
-A: 当前只支持 OpenAI 格式。可以通过 `baseURL` 参数使用兼容 OpenAI 的服务（如 Azure OpenAI、本地 Ollama）。
+**Q: 如何切换模型？**
+A: 修改 `modelName` 配置（如从 `deepseek/deepseek-chat` 切换到 `anthropic/claude-3.5-sonnet`）。
 
-**Q: 如何处理 API 调用失败？**
-A: 建议实现降级策略：失败时回退到 Mock 模式或关键词分析，并向用户显示友好提示。
+**Q: 流式响应的性能如何？**
+A: 流式响应延迟更低（首次响应时间 < 1s），用户体验更好。
+
+**Q: 如何支持其他语言？**
+A: 修改 `getSystemPrompt` 中的 `language` 参数，动态切换语言指令。
 
 ---
 
@@ -494,7 +681,11 @@ A: 建议实现降级策略：失败时回退到 Mock 模式或关键词分析�
 
 ```
 src/services/
-├── OpenAIService.ts    # AI 服务实现
+├── PARAService.ts      # PARA 分类服务（主要使用）
+├── AIService.ts        # 流式聊天服务
+├── OpenAIService.ts    # 旧版服务（已废弃）
+├── PARAService.js      # 编译产物
+├── AIService.js        # 编译产物
 └── OpenAIService.js    # 编译产物
 ```
 
@@ -505,34 +696,39 @@ src/services/
 ### 未来增强方向
 
 1. **多模型支持**：
-   - 支持 Claude API
+   - 支持 Claude API（直接集成）
    - 支持本地模型（Ollama、LM Studio）
-   - 抽象通用 LLM 接口
 
-2. **智能缓存**：
-   - 缓存已分析的文件内容
+2. **自定义 Prompt**：
+   - 允许用户配置 System Prompt
+   - 支持预设 Prompt 模板
+
+3. **智能缓存**：
+   - 缓存 AI 分析结果
    - 只分析新增或修改的文件
 
-3. **自定义规则**：
-   - 允许用户配置分类规则
-   - 支持正则表达式匹配
-
-4. **批量优化**：
-   - 自动识别相似文档并批量处理
-   - 使用 Embedding 进行相似度聚类
-
-5. **成本控制**：
+4. **成本控制**：
    - 显示 Token 使用统计
    - 支持设置单次分析上限
+   - 自动选择最便宜的模型
+
+5. **错误重试**：
+   - 指数退避重试（Exponential Backoff）
+   - 自动降级到 Mock 模式
+
+6. **RAG 增强**：
+   - 基于知识库检索（Embedding）
+   - 语义搜索相似文档
 
 ---
 
 ## 参考资源
 
-- [OpenAI Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
-- [OpenAI Node SDK](https://github.com/openai/openai-node)
+- [AI SDK (Vercel)](https://sdk.vercel.ai/docs)
+- [OpenRouter](https://openrouter.ai/)
 - [PARA Method](https://fortelabs.co/blog/para/)
+- [OpenAI Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
 ---
 
-*文档生成时间：2026-01-17 19:27:29*
+*文档生成时间：2026-01-27 21:35:33*

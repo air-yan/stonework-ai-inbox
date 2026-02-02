@@ -9,7 +9,6 @@ export class ObsAdapter implements DataProvider {
         const folder = this.app.vault.getAbstractFileByPath(normalizePath(inboxPath));
 
         if (!folder) {
-            console.warn(`Inbox folder '${inboxPath}' not found`);
             return [];
         }
 
@@ -38,13 +37,21 @@ export class ObsAdapter implements DataProvider {
     async moveFile(path: string, targetPath: string): Promise<void> {
         const file = this.app.vault.getAbstractFileByPath(path);
         if (file instanceof TFile) {
+            const normalizedTarget = normalizePath(targetPath);
+
+            // Check if target file already exists
+            const existingFile = this.app.vault.getAbstractFileByPath(normalizedTarget);
+            if (existingFile) {
+                throw new Error(`DUPLICATE_FILE:${normalizedTarget}`);
+            }
+
             // Ensure target directory exists
             const targetDir = targetPath.substring(0, targetPath.lastIndexOf('/'));
             if (targetDir && !this.app.vault.getAbstractFileByPath(targetDir)) {
                 await this.app.vault.createFolder(targetDir);
             }
 
-            await this.app.fileManager.renameFile(file, normalizePath(targetPath));
+            await this.app.fileManager.renameFile(file, normalizedTarget);
         }
     }
 
@@ -127,5 +134,10 @@ export class ObsAdapter implements DataProvider {
             this.app.vault.offref(deleteRef);
             this.app.vault.offref(renameRef);
         };
+    }
+
+    openFile(path: string): void {
+        // 使用 openLinkText 打开文件，效果与双链点击一致
+        this.app.workspace.openLinkText(path, '', false);
     }
 }

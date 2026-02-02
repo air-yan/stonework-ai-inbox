@@ -50,7 +50,6 @@ export const ChatPanel: React.FC<{ aiService: AIService; app?: App }> = ({ aiSer
                 });
             },
             (err) => {
-                console.error(err);
                 setMessages(prev => [...prev, { role: 'system', content: `Error: ${err.message || 'Unknown error'}` }]);
                 setIsLoading(false);
             }
@@ -59,7 +58,7 @@ export const ChatPanel: React.FC<{ aiService: AIService; app?: App }> = ({ aiSer
     };
 
     return (
-        <div className="chat-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--background-primary)' }}>
+        <div className="chat-panel">
             <MessageList messages={messages} />
             <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>

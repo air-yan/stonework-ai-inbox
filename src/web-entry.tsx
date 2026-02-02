@@ -10,9 +10,10 @@ const root = createRoot(document.getElementById('root')!);
 
 const WebApp = () => {
 
-    // Real Service with User Credentials (DeepSeek v3.1 via OpenRouter)
+    // AI Service Configuration (use environment variable or configure in settings)
+    // IMPORTANT: Never commit real API keys to version control!
     const aiService = new AIService({
-        apiKey: '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',
+        apiKey: import.meta.env.VITE_OPENROUTER_KEY || 'YOUR_API_KEY_HERE',
         baseURL: 'https://openrouter.ai/api/v1',
         modelName: 'deepseek/deepseek-chat'
     });
@@ -34,11 +35,11 @@ const WebApp = () => {
     } as unknown as App;
 
     return (
-        <div style={{ display: 'flex', height: '100vh', flexDirection: 'row' }}>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div className="web-app-layout">
+            <div className="web-app-main">
                 <InboxView adapter={new WebAdapter()} />
             </div>
-            <div style={{ width: '400px', borderLeft: '1px solid var(--background-modifier-border)' }}>
+            <div className="web-app-sidebar">
                 <ChatPanel aiService={aiService} app={mockApp} />
             </div>
         </div>

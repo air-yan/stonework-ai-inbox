@@ -10,6 +10,7 @@ interface OrganizationalTableProps {
     onSuggestionChange?: (path: string, suggestion: OrganizationSuggestion) => void;
     onScanRow?: (path: string, content: string) => void;
     scanningPaths?: string[];
+    onOpenFile?: (path: string) => void;
 }
 
 interface EditableRow {
@@ -38,12 +39,6 @@ const ScanIcon = () => (
     </svg>
 );
 
-const EditIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-    </svg>
-);
-
 const PlusIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 5v14m-7-7h14" />
@@ -53,11 +48,11 @@ const PlusIcon = () => (
 const TEXT = {
     en: {
         file: 'File',
-        manualFolder: 'Manual Folder',
-        aiTargetFolder: 'AI Target Folder',
+        manualFolder: 'Manual folder',
+        aiTargetFolder: 'AI target folder',
         tags: 'Tags',
         actions: 'Actions',
-        aiScan: 'AI Scan',
+        aiScan: 'AI scan',
         wait: 'Wait',
         accept: 'Accept',
         ignore: 'Ignore',
@@ -66,8 +61,9 @@ const TEXT = {
         analysing: 'Analysing content structure...',
         new: 'New',
         root: 'Root',
-        reasonLabel: 'AI Reason',
-        noSelection: 'Not selected'
+        reasonLabel: 'AI reason',
+        noSelection: 'Not selected',
+        createFolder: 'Create'
     },
     zh: {
         file: '文件',
@@ -85,7 +81,8 @@ const TEXT = {
         new: '新增',
         root: '根目录',
         reasonLabel: 'AI 推荐理由',
-        noSelection: '未选择'
+        noSelection: '未选择',
+        createFolder: '创建'
     }
 };
 
@@ -97,10 +94,12 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
     onScanRow,
     scanningPaths = [],
     language = 'en',
-    allFolders = []
+    allFolders = [],
+    onOpenFile
 }) => {
     const [editState, setEditState] = useState<Record<string, EditableRow>>({});
     const [manualDropdownSearch, setManualDropdownSearch] = useState<Record<string, string>>({});
+    const [highlightIndex, setHighlightIndex] = useState<Record<string, number>>({}); // Keyboard navigation index
     const t = TEXT[language];
 
     // Initialize edit state for new files
@@ -141,6 +140,26 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
         }
     }, [files, suggestions]);
 
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => {
+            setEditState(prev => {
+                const hasOpenDropdown = Object.values(prev).some(e => e.showManualDropdown);
+                if (!hasOpenDropdown) return prev;
+                const updated = { ...prev };
+                Object.keys(updated).forEach(key => {
+                    if (updated[key].showManualDropdown) {
+                        updated[key] = { ...updated[key], showManualDropdown: false };
+                    }
+                });
+                return updated;
+            });
+            setManualDropdownSearch({});
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
     const getSuggestion = (path: string) => suggestions.find(s => s.path === path);
     const getEditState = (path: string): EditableRow | undefined => editState[path];
 
@@ -178,6 +197,8 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                 showManualDropdown: !prev[path]?.showManualDropdown
             }
         }));
+        // Reset highlight index when opening
+        setHighlightIndex(prev => ({ ...prev, [path]: -1 }));
     };
 
     const clearManualFolder = (path: string) => {
@@ -191,18 +212,10 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
         const edit = editState[path];
         if (!edit) return;
 
-        // DEBUG: Log values
-        console.log('[handleAccept] path:', path);
-        console.log('[handleAccept] edit:', edit);
-        console.log('[handleAccept] edit.manualFolderPath:', edit.manualFolderPath);
-        console.log('[handleAccept] suggestion:', suggestion);
-
         // Priority: manual folder > AI suggestion
         const targetFolder = edit.manualFolderPath
             ? edit.manualFolderPath
             : suggestion?.folderSuggestions?.[edit.selectedFolderIndex]?.folder || '';
-
-        console.log('[handleAccept] targetFolder:', targetFolder);
 
         if (!targetFolder) return;
 
@@ -222,36 +235,33 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
     };
 
     const renderFolderPath = (path: string) => {
-        if (!path) return <span style={{ color: 'var(--text-muted)' }}>{t.root}</span>;
+        if (!path) return <span className="inbox-ai-text-muted">{t.root}</span>;
         const parts = path.split('/');
         const fileName = parts.pop();
         const parentPath = parts.join('/') + (parts.length > 0 ? '/' : '');
 
         return (
-            <span style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-                <span style={{ color: 'var(--text-muted)' }}>{parentPath}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-normal)' }}>{fileName}</span>
+            <span className="folder-path">
+                <span className="parent">{parentPath}</span>
+                <span className="name">{fileName}</span>
             </span>
         );
     };
 
     return (
-        <div style={{
-            borderRadius: '8px',
-            border: '1px solid var(--background-modifier-border)'
-        }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead style={{ background: 'var(--background-secondary)' }}>
+        <div className="org-table-container">
+            <table className="org-table">
+                <thead>
                     <tr>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '12%' }}>{t.file}</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '18%' }}>{t.manualFolder}</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '25%' }}>{t.aiTargetFolder}</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '15%' }}>{t.tags}</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '20%' }}>{t.reasonLabel}</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)', width: '10%' }}>{t.actions}</th>
+                        <th style={{ width: '12%' }}>{t.file}</th>
+                        <th style={{ width: '18%' }}>{t.manualFolder}</th>
+                        <th style={{ width: '25%' }}>{t.aiTargetFolder}</th>
+                        <th style={{ width: '15%' }}>{t.tags}</th>
+                        <th style={{ width: '20%' }}>{t.reasonLabel}</th>
+                        <th style={{ width: '10%' }}>{t.actions}</th>
                     </tr>
                 </thead>
-                <tbody style={{ background: 'var(--background-primary)' }}>
+                <tbody>
                     {files.map(file => {
                         const suggestion = getSuggestion(file.path);
                         const edit = getEditState(file.path);
@@ -260,159 +270,161 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                         const isScanning = scanningPaths.includes(file.path);
                         const hasManualFolder = !!edit?.manualFolderPath;
                         const searchValue = manualDropdownSearch[file.path] || '';
-                        const isCustom = edit?.useCustomPath || false;
 
                         return (
-                            <tr key={file.path} style={{ borderBottom: '1px solid var(--background-modifier-border)' }}>
+                            <tr key={file.path}>
                                 {/* File Name Column */}
-                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                                    <div style={{ fontWeight: 500, color: 'var(--text-normal)' }}>{file.name}</div>
+                                <td>
+                                    <div
+                                        onClick={() => onOpenFile?.(file.path)}
+                                        className={`org-table-filename ${onOpenFile ? '' : 'no-link'}`}
+                                        title={file.path}
+                                    >
+                                        {file.name}
+                                    </div>
                                 </td>
 
                                 {/* Manual Folder Column */}
-                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                                    <div style={{ position: 'relative' }}>
+                                <td>
+                                    <div className="manual-folder-selector">
                                         {/* Selected folder or dropdown trigger */}
                                         <div
-                                            onClick={() => toggleManualDropdown(file.path)}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                padding: '8px 12px',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                border: hasManualFolder
-                                                    ? '1px solid var(--interactive-accent)'
-                                                    : '1px solid var(--background-modifier-border)',
-                                                background: 'var(--background-primary)',
-                                                transition: 'all 0.15s'
-                                            }}
+                                            onClick={(e) => { e.stopPropagation(); toggleManualDropdown(file.path); }}
+                                            className={`manual-folder-trigger ${hasManualFolder ? 'selected' : ''}`}
                                         >
                                             <FolderIcon />
-                                            <span style={{
-                                                flex: 1,
-                                                color: hasManualFolder ? 'var(--text-normal)' : 'var(--text-muted)',
-                                                fontSize: '0.9em'
-                                            }}>
+                                            <span className={hasManualFolder ? '' : 'placeholder'}>
                                                 {hasManualFolder ? edit?.manualFolderPath : t.selectFolder}
                                             </span>
                                             {hasManualFolder && (
                                                 <span
                                                     onClick={(e) => { e.stopPropagation(); clearManualFolder(file.path); }}
-                                                    style={{
-                                                        color: 'var(--text-muted)',
-                                                        cursor: 'pointer',
-                                                        padding: '2px'
-                                                    }}
-                                                >×</span>
+                                                    className="clear-btn"
+                                                >x</span>
                                             )}
                                         </div>
 
                                         {/* Dropdown */}
-                                        {edit?.showManualDropdown && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '100%',
-                                                left: 0,
-                                                right: 0,
-                                                marginTop: '4px',
-                                                background: 'var(--background-secondary)',
-                                                border: '1px solid var(--background-modifier-border)',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                                maxHeight: '250px',
-                                                overflowY: 'auto',
-                                                zIndex: 100
-                                            }}>
-                                                {/* Search input */}
-                                                <div style={{ padding: '8px', borderBottom: '1px solid var(--background-modifier-border)' }}>
-                                                    <input
-                                                        type="text"
-                                                        value={searchValue}
-                                                        onChange={(e) => setManualDropdownSearch(prev => ({ ...prev, [file.path]: e.target.value }))}
-                                                        placeholder={t.searchFolder}
-                                                        style={{
-                                                            width: '100%',
-                                                            padding: '6px 10px',
-                                                            border: '1px solid var(--background-modifier-border)',
-                                                            borderRadius: '6px',
-                                                            background: 'var(--background-primary)',
-                                                            color: 'var(--text-normal)',
-                                                            fontSize: '0.9em',
-                                                            outline: 'none'
-                                                        }}
-                                                        autoFocus
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                </div>
-                                                {/* Folder list */}
-                                                {allFolders
-                                                    .filter(f => !searchValue || f.toLowerCase().includes(searchValue.toLowerCase()))
-                                                    .slice(0, 10)
-                                                    .map((folder) => (
-                                                        <div
-                                                            key={folder}
-                                                            onClick={() => handleManualFolderSelect(file.path, folder)}
-                                                            style={{
-                                                                padding: '8px 12px',
-                                                                cursor: 'pointer',
-                                                                color: 'var(--text-normal)',
-                                                                fontSize: '0.9em',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '8px',
-                                                                transition: 'background 0.15s'
+                                        {edit?.showManualDropdown && (() => {
+                                            const filteredFolders = allFolders
+                                                .filter(f => !searchValue || f.toLowerCase().includes(searchValue.toLowerCase()))
+                                                .slice(0, 15);
+                                            const hasCreateOption = searchValue && !allFolders.some(f => f.toLowerCase() === searchValue.toLowerCase());
+                                            const totalItems = (hasCreateOption ? 1 : 0) + filteredFolders.length;
+                                            const currentHighlight = highlightIndex[file.path] ?? -1;
+
+                                            const handleKeyDown = (e: React.KeyboardEvent) => {
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    setHighlightIndex(prev => ({
+                                                        ...prev,
+                                                        [file.path]: Math.min((prev[file.path] ?? -1) + 1, totalItems - 1)
+                                                    }));
+                                                } else if (e.key === 'ArrowUp') {
+                                                    e.preventDefault();
+                                                    setHighlightIndex(prev => ({
+                                                        ...prev,
+                                                        [file.path]: Math.max((prev[file.path] ?? 0) - 1, 0)
+                                                    }));
+                                                } else if (e.key === 'Tab') {
+                                                    e.preventDefault();
+                                                    if (currentHighlight >= 0) {
+                                                        const selectedFolder = hasCreateOption
+                                                            ? (currentHighlight === 0 ? searchValue : filteredFolders[currentHighlight - 1])
+                                                            : filteredFolders[currentHighlight];
+                                                        if (selectedFolder) {
+                                                            setManualDropdownSearch(prev => ({ ...prev, [file.path]: selectedFolder }));
+                                                        }
+                                                    } else if (filteredFolders.length > 0) {
+                                                        setManualDropdownSearch(prev => ({ ...prev, [file.path]: filteredFolders[0] }));
+                                                        setHighlightIndex(prev => ({ ...prev, [file.path]: hasCreateOption ? 1 : 0 }));
+                                                    }
+                                                } else if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (currentHighlight >= 0) {
+                                                        const selectedFolder = hasCreateOption
+                                                            ? (currentHighlight === 0 ? searchValue : filteredFolders[currentHighlight - 1])
+                                                            : filteredFolders[currentHighlight];
+                                                        if (selectedFolder) {
+                                                            handleManualFolderSelect(file.path, selectedFolder);
+                                                        }
+                                                    } else if (hasCreateOption) {
+                                                        handleManualFolderSelect(file.path, searchValue);
+                                                    } else if (filteredFolders.length > 0) {
+                                                        handleManualFolderSelect(file.path, filteredFolders[0]);
+                                                    }
+                                                } else if (e.key === 'Escape') {
+                                                    toggleManualDropdown(file.path);
+                                                }
+                                            };
+
+                                            return (
+                                                <div
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="folder-dropdown"
+                                                >
+                                                    {/* Search input */}
+                                                    <div className="folder-dropdown-search">
+                                                        <input
+                                                            type="text"
+                                                            value={searchValue}
+                                                            onChange={(e) => {
+                                                                setManualDropdownSearch(prev => ({ ...prev, [file.path]: e.target.value }));
+                                                                setHighlightIndex(prev => ({ ...prev, [file.path]: -1 }));
                                                             }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--background-modifier-hover)'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                            onKeyDown={handleKeyDown}
+                                                            placeholder={t.searchFolder}
+                                                            autoFocus
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        />
+                                                    </div>
+                                                    {/* Create new folder option */}
+                                                    {hasCreateOption && (
+                                                        <div
+                                                            onClick={() => handleManualFolderSelect(file.path, searchValue)}
+                                                            className={`folder-dropdown-create ${currentHighlight === 0 ? 'highlighted' : ''}`}
+                                                            onMouseEnter={() => setHighlightIndex(prev => ({ ...prev, [file.path]: 0 }))}
                                                         >
-                                                            <FolderIcon /> {folder}
+                                                            <PlusIcon /> {t.createFolder} "{searchValue}"
                                                         </div>
-                                                    ))}
-                                            </div>
-                                        )}
+                                                    )}
+                                                    {/* Folder list */}
+                                                    {filteredFolders.map((folder, idx) => {
+                                                        const itemIndex = hasCreateOption ? idx + 1 : idx;
+                                                        const isHighlighted = currentHighlight === itemIndex;
+                                                        return (
+                                                            <div
+                                                                key={folder}
+                                                                onClick={() => handleManualFolderSelect(file.path, folder)}
+                                                                className={`folder-dropdown-item ${isHighlighted ? 'highlighted' : ''}`}
+                                                                onMouseEnter={() => setHighlightIndex(prev => ({ ...prev, [file.path]: itemIndex }))}
+                                                            >
+                                                                <FolderIcon /> {folder}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </td>
 
                                 {/* AI Target Folder Column */}
-                                <td style={{
-                                    padding: '16px',
-                                    verticalAlign: 'top',
-                                    opacity: hasManualFolder ? 0.4 : 1,
-                                    pointerEvents: hasManualFolder ? 'none' : 'auto'
-                                }}>
+                                <td className={hasManualFolder ? 'inbox-ai-muted' : ''}>
                                     {suggestion?.folderSuggestions ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <div className="ai-folder-suggestions">
                                             {suggestion.folderSuggestions.map((fs, idx) => {
                                                 const isSelected = selectedIndex === idx;
                                                 return (
                                                     <div
                                                         key={idx}
                                                         onClick={() => handleFolderSelect(file.path, idx)}
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '8px',
-                                                            padding: '6px 10px',
-                                                            borderRadius: '6px',
-                                                            cursor: 'pointer',
-                                                            border: isSelected ? '1px solid var(--interactive-accent)' : '1px solid transparent',
-                                                            background: isSelected ? 'var(--background-primary)' : 'var(--background-secondary)',
-                                                            transition: 'all 0.15s'
-                                                        }}
+                                                        className={`ai-folder-option ${isSelected ? 'selected' : ''}`}
                                                     >
                                                         <FolderIcon />
-                                                        <span style={{ fontSize: '0.85em' }}>{renderFolderPath(fs.folder)}</span>
+                                                        <span className="inbox-ai-text-sm">{renderFolderPath(fs.folder)}</span>
                                                         {fs.isNew && (
-                                                            <span style={{
-                                                                fontSize: '0.7em',
-                                                                fontWeight: 600,
-                                                                color: 'var(--color-purple, #a855f7)',
-                                                                background: 'rgba(168, 85, 247, 0.1)',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '10px'
-                                                            }}>
+                                                            <span className="new-badge">
                                                                 <SparklesIcon /> {t.new}
                                                             </span>
                                                         )}
@@ -421,24 +433,17 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             })}
                                         </div>
                                     ) : isScanning ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--interactive-accent)' }}>
-                                            <div style={{
-                                                width: '14px', height: '14px',
-                                                border: '2px solid transparent',
-                                                borderTopColor: 'currentColor',
-                                                borderRadius: '50%',
-                                                animation: 'spin 1s linear infinite'
-                                            }} />
-                                            <span style={{ fontSize: '0.85em' }}>{t.analysing}</span>
-                                            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                                        <div className="scanning-indicator">
+                                            <div className="spinner" />
+                                            <span>{t.analysing}</span>
                                         </div>
                                     ) : (
-                                        <span style={{ color: 'var(--text-faint)' }}>-</span>
+                                        <span className="inbox-ai-text-faint">-</span>
                                     )}
                                 </td>
 
                                 {/* Tags Column */}
-                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                                <td>
                                     {suggestion ? (
                                         <TagsEditor
                                             tags={currentTags}
@@ -446,55 +451,31 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             highlightTags={suggestion.newTags}
                                         />
                                     ) : (
-                                        <span style={{ color: 'var(--text-faint)' }}>-</span>
+                                        <span className="inbox-ai-text-faint">-</span>
                                     )}
                                 </td>
 
                                 {/* Reason Column */}
-                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                                <td>
                                     {suggestion?.reason ? (
-                                        <div style={{
-                                            fontSize: '0.85em',
-                                            color: 'var(--text-normal)',
-                                            lineHeight: '1.5'
-                                        }}>
-                                            {suggestion.reason}
-                                        </div>
+                                        <div className="ai-reason">{suggestion.reason}</div>
                                     ) : (
-                                        <span style={{ color: 'var(--text-faint)' }}>-</span>
+                                        <span className="inbox-ai-text-faint">-</span>
                                     )}
                                 </td>
 
                                 {/* Actions Column */}
-                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <td>
+                                    <div className="actions-column">
                                         {/* AI Scan Button - show when no suggestion and no manual folder */}
                                         {onScanRow && !suggestion && !hasManualFolder && (
                                             <button
                                                 onClick={() => onScanRow(file.path, file.content)}
                                                 disabled={isScanning}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    padding: '6px 12px',
-                                                    fontSize: '0.85em',
-                                                    background: isScanning ? 'var(--background-modifier-border)' : 'transparent',
-                                                    color: isScanning ? 'var(--text-muted)' : 'var(--interactive-accent)',
-                                                    border: isScanning ? 'none' : '1px solid var(--interactive-accent)',
-                                                    borderRadius: '6px',
-                                                    cursor: isScanning ? 'wait' : 'pointer',
-                                                    width: 'fit-content'
-                                                }}
+                                                className="btn-outline-accent"
                                             >
                                                 {isScanning ? (
-                                                    <div style={{
-                                                        width: '12px', height: '12px',
-                                                        border: '2px solid transparent',
-                                                        borderTopColor: 'currentColor',
-                                                        borderRadius: '50%',
-                                                        animation: 'spin 1s linear infinite'
-                                                    }} />
+                                                    <div className="spinner" />
                                                 ) : (
                                                     <ScanIcon />
                                                 )}
@@ -507,30 +488,13 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             <>
                                                 <button
                                                     onClick={() => handleAccept(file.path, suggestion)}
-                                                    style={{
-                                                        background: 'var(--interactive-accent)',
-                                                        color: 'var(--text-on-accent)',
-                                                        border: 'none',
-                                                        padding: '6px 12px',
-                                                        borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.85em',
-                                                        fontWeight: 500
-                                                    }}
+                                                    className="btn-accept"
                                                 >
                                                     {t.accept}
                                                 </button>
                                                 <button
                                                     onClick={() => onIgnore(file.path)}
-                                                    style={{
-                                                        background: 'transparent',
-                                                        color: 'var(--text-muted)',
-                                                        border: '1px solid var(--background-modifier-border)',
-                                                        padding: '6px 12px',
-                                                        borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.85em'
-                                                    }}
+                                                    className="btn-secondary"
                                                 >
                                                     {t.ignore}
                                                 </button>

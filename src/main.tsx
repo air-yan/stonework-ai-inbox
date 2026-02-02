@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, ItemView } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, ItemView, Notice } from 'obsidian';
 import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { InboxView } from './views/InboxView';
@@ -7,6 +7,8 @@ import { ObsAdapter } from './adapters/ObsAdapter';
 import { ChatView, VIEW_TYPE_CHAT } from './views/ChatView';
 
 const VIEW_TYPE_INBOX = 'inbox-organizer-view';
+const INBOX_VIEW_TYPE = VIEW_TYPE_INBOX;
+const CHAT_VIEW_TYPE = VIEW_TYPE_CHAT;
 
 interface PluginSettings {
     apiKey: string;
@@ -26,17 +28,18 @@ const DEFAULT_SETTINGS: PluginSettings = {
 
 export default class InboxPlugin extends Plugin {
     settings: PluginSettings;
+    private originalWarn: typeof console.warn;
 
     async onload() {
         // 过滤 AI SDK 的兼容性警告
-        const originalWarn = console.warn;
+        this.originalWarn = console.warn;
         console.warn = (...args) => {
             if (typeof args[0] === 'string' &&
                 args[0].includes('AI SDK Warning') &&
                 args[0].includes('specificationVersion')) {
                 return;
             }
-            originalWarn.apply(console, args);
+            this.originalWarn.apply(console, args);
         };
 
         await this.loadSettings();
@@ -51,15 +54,39 @@ export default class InboxPlugin extends Plugin {
             (leaf) => new ChatView(leaf, this)
         );
 
-        this.addRibbonIcon('archive', 'Open Inbox Organizer', () => {
+        this.addRibbonIcon('archive', 'Open inbox organizer', () => {
             this.activateView();
         });
 
-        this.addRibbonIcon('bot', 'Open Second Brain Assistant', () => {
+        this.addRibbonIcon('bot', 'Open second brain assistant', () => {
             this.activateChatView();
         });
 
+        // Add commands for command palette (Ctrl+P)
+        this.addCommand({
+            id: 'open-inbox-organizer',
+            name: 'Open inbox organizer',
+            callback: () => this.activateView()
+        });
+
+        this.addCommand({
+            id: 'open-chat-assistant',
+            name: 'Open second brain assistant',
+            callback: () => this.activateChatView()
+        });
+
         this.addSettingTab(new InboxSettingTab(this.app, this));
+    }
+
+    onunload() {
+        // 还原 console.warn
+        if (this.originalWarn) {
+            console.warn = this.originalWarn;
+        }
+
+        // 关闭所有视图（Obsidian 会自动清理已注册的视图）
+        this.app.workspace.detachLeavesOfType(INBOX_VIEW_TYPE);
+        this.app.workspace.detachLeavesOfType(CHAT_VIEW_TYPE);
     }
 
     async loadSettings() {
@@ -123,7 +150,7 @@ class InboxViewLeaf extends ItemView {
     }
 
     getDisplayText() {
-        return 'Inbox Organizer';
+        return 'Inbox organizer';
     }
 
     async onOpen() {
@@ -143,7 +170,11 @@ class InboxViewLeaf extends ItemView {
         };
 
         this.root.render(
-            <InboxView adapter={this.adapter} aiConfig={aiConfig} />
+            <InboxView
+                adapter={this.adapter}
+                aiConfig={aiConfig}
+                inboxPath={this.plugin.settings.inboxPath}
+            />
         );
     }
 
@@ -177,6 +208,7 @@ class InboxSettingTab extends PluginSettingTab {
                 initialInboxPath={this.plugin.settings.inboxPath}
                 initialModelName={this.plugin.settings.modelName}
                 initialLanguage={this.plugin.settings.language}
+                allFolders={new ObsAdapter(this.app).getAllFolders()}
                 onSave={async (config) => {
                     this.plugin.settings.apiKey = config.apiKey;
                     this.plugin.settings.baseURL = config.baseURL;
@@ -184,7 +216,8 @@ class InboxSettingTab extends PluginSettingTab {
                     this.plugin.settings.modelName = config.modelName;
                     this.plugin.settings.language = config.language;
                     await this.plugin.saveSettings();
-                    // Ideal: new Notice('Settings saved');
+                    // Show notification
+                    new Notice('Settings saved!');
                 }}
             />
         );

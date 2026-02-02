@@ -42,7 +42,7 @@ const getSystemPrompt = (language: 'en' | 'zh') => {
 ## 约束与规则
 
 1. **JSON 输出**：必须输出合法的 JSON 格式，不要包含 Markdown 代码块标记（如 \`\`\`json）。
-2. **数量限制**：提供 3 个文件夹建议，2-5 个标签建议。
+2. **数量限制**：提供 3 个文件夹建议，最多 3 个标签建议。
 3. **命名规范**：新文件夹建议 3-6 字，动宾或名词短语。
 ${langInstruction}
 
@@ -101,12 +101,9 @@ export class PARAService {
                 prompt: userPrompt,
             });
 
-            console.log('[PARAService] AI Response:', text);
-
             // 解析 JSON
             return this.parseJSONResponse(text);
         } catch (error) {
-            console.error('[PARAService] Analysis failed:', error);
             return {
                 folderSuggestions: [],
                 tags: [],
@@ -152,13 +149,12 @@ ${documentContent}
                 }))
                 : [];
 
-            const tags = Array.isArray(parsed.tags) ? parsed.tags : [];
-            const newTags = Array.isArray(parsed.newTags) ? parsed.newTags : [];
+            const tags = Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : [];
+            const newTags = Array.isArray(parsed.newTags) ? parsed.newTags.slice(0, 3) : [];
             const reason = parsed.reason || '';
 
             return { folderSuggestions, tags, newTags, reason };
         } catch (e) {
-            console.error('[PARAService] JSON Parse Error:', e);
             return {
                 folderSuggestions: [],
                 tags: [],

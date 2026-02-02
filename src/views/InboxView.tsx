@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { DataProvider, FileMetadata, OrganizationSuggestion } from '../adapters/types';
-import { OpenAIService } from '../services/OpenAIService';
 import { PARAService, AIConfig } from '../services/PARAService';
 import { OrganizationalTable } from '../components/OrganizationalTable';
+import { ToastContainer, ToastType } from '../components/Toast';
 
 // 默认 AI 配置（可从设置中获取）
 const DEFAULT_AI_CONFIG: AIConfig = {
@@ -14,15 +14,43 @@ const DEFAULT_AI_CONFIG: AIConfig = {
 interface InboxViewProps {
     adapter: DataProvider;
     aiConfig?: AIConfig;
+    inboxPath?: string;
 }
 
-export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
+const TEXT = {
+    en: {
+        scanAllBtn: 'Scan all with AI',
+        scanningStatus: 'Scanning',
+        proFeature: '🔒 Premium Feature - Coming Soon',
+        duplicateFileError: 'Move failed: A file with the same name already exists at',
+        moveFailedError: 'Move failed'
+    },
+    zh: {
+        scanAllBtn: '批量 AI 扫描',
+        scanningStatus: '扫描中',
+        proFeature: '🔒 高级功能 - 即将推出',
+        duplicateFileError: '移动失败：目标位置已存在同名文件',
+        moveFailedError: '移动失败'
+    }
+};
+
+export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPath = 'Inbox' }) => {
     const [files, setFiles] = useState<FileMetadata[]>([]);
     const [suggestions, setSuggestions] = useState<OrganizationSuggestion[]>([]);
     const [loading, setLoading] = useState(false);
     const [scanningPaths, setScanningPaths] = useState<string[]>([]);
     const [allFolders, setAllFolders] = useState<string[]>([]);
-    const [llmService] = useState(() => new OpenAIService());
+    const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: ToastType }>>([]);
+    const t = TEXT[aiConfig?.language || 'en'];
+
+    const showToast = (message: string, type: ToastType = 'error') => {
+        const id = Date.now().toString();
+        setToasts(prev => [...prev, { id, message, type }]);
+    };
+
+    const removeToast = (id: string) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+    };
 
     // PARA 分析服务
     const [paraService] = useState(() => new PARAService(aiConfig || DEFAULT_AI_CONFIG));
@@ -35,12 +63,12 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
     }, [aiConfig, paraService]);
 
     const refreshFiles = useCallback(async () => {
-        const loadedFiles = await adapter.loadInboxFiles('Inbox');
+        const loadedFiles = await adapter.loadInboxFiles(inboxPath);
         setFiles(loadedFiles);
         // Load folders for autocomplete
         const folders = adapter.getAllFolders();
         setAllFolders(folders);
-    }, [adapter]);
+    }, [adapter, inboxPath]);
 
     // Initial load
     useEffect(() => {
@@ -49,12 +77,11 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
 
     // Real-time file watching - auto refresh when Inbox changes
     useEffect(() => {
-        const unsubscribe = adapter.onInboxChange('Inbox', () => {
-            console.log('[InboxView] Inbox changed, refreshing...');
+        const unsubscribe = adapter.onInboxChange(inboxPath, () => {
             refreshFiles();
         });
         return unsubscribe;
-    }, [adapter, refreshFiles]);
+    }, [adapter, inboxPath, refreshFiles]);
 
     // 批量扫描 - 每次 3 个并发
     const handleScanAll = async () => {
@@ -67,12 +94,11 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
         try {
             for (let i = 0; i < filesToScan.length; i += batchSize) {
                 const batch = filesToScan.slice(i, i + batchSize);
-                console.log(`[InboxView] Scanning batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(filesToScan.length / batchSize)}: ${batch.map(f => f.name).join(', ')}`);
                 // 并发执行这一批
                 await Promise.all(batch.map(f => handleScanRow(f.path, f.content)));
             }
         } catch (error) {
-            console.error('[InboxView] Batch scan failed:', error);
+            // Batch scan failed silently
         } finally {
             setLoading(false);
         }
@@ -88,14 +114,8 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
             const allTags = adapter.getAllTags();
             const folderTree = adapter.getFolderTree();
 
-            console.log('[InboxView] Scanning row:', path);
-            console.log('[InboxView] Tags:', allTags);
-            console.log('[InboxView] FolderTree:', folderTree);
-
             // 调用 PARA 服务分析
             const result = await paraService.analyzeDocument(content, allTags, folderTree);
-
-            console.log('[InboxView] PARA result:', result);
 
             // 构建 suggestion 并更新状态
             const suggestion: OrganizationSuggestion = {
@@ -113,7 +133,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
                 return [...filtered, suggestion];
             });
         } catch (error) {
-            console.error('[InboxView] Scan row failed:', error);
+            // Scan row failed silently
         } finally {
             // 移除扫描中状态
             setScanningPaths(prev => prev.filter(p => p !== path));
@@ -126,20 +146,29 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
             || suggestion.folderSuggestions[suggestion.selectedFolderIndex]?.folder
             || '';
 
-        console.log(`Moving ${path} to ${targetFolder}`);
 
-        // Update frontmatter first (while file is still at path)
-        await adapter.updateFrontmatter(path, {
-            tags: suggestion.tags,
-            area: suggestion.area,
-            reason: suggestion.reason // Save AI reason to frontmatter
-        });
-        // Execute move via adapter
-        await adapter.moveFile(path, `${targetFolder}/${path.split('/').pop()}`);
+        try {
+            // Update frontmatter first (while file is still at path)
+            await adapter.updateFrontmatter(path, {
+                tags: suggestion.tags,
+                area: suggestion.area,
+                reason: suggestion.reason // Save AI reason to frontmatter
+            });
+            // Execute move via adapter
+            await adapter.moveFile(path, `${targetFolder}/${path.split('/').pop()}`);
 
-        // Remove from local list to reflect change immediately
-        setFiles(prev => prev.filter(f => f.path !== path));
-        setSuggestions(prev => prev.filter(s => s.path !== path));
+            // Remove from local list to reflect change immediately
+            setFiles(prev => prev.filter(f => f.path !== path));
+            setSuggestions(prev => prev.filter(s => s.path !== path));
+        } catch (error: any) {
+            // Check if it's a duplicate file error
+            if (error?.message?.startsWith('DUPLICATE_FILE:')) {
+                const targetPath = error.message.replace('DUPLICATE_FILE:', '');
+                showToast(`${t.duplicateFileError}\n${targetPath}`, 'error');
+            } else {
+                showToast(`${t.moveFailedError}: ${error?.message || 'Unknown error'}`, 'error');
+            }
+        }
     };
 
     const handleIgnore = (path: string) => {
@@ -147,29 +176,37 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1>Inbox Organizer <span style={{ fontSize: '0.6em', color: 'var(--text-muted)' }}>v1.3.0</span></h1>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <>
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            <div className="inbox-view">
+                <div className="inbox-view-header">
+                    <h1>Inbox organizer <span className="version">v0.1.0</span></h1>
+                <div className="inbox-view-actions">
                     {loading && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9em' }}>
+                        <span className="inbox-view-status">
                             Scanning {scanningPaths.length} files...
                         </span>
                     )}
                     <button
                         onClick={handleScanAll}
-                        disabled={loading || files.length === 0}
-                        style={{
-                            background: 'var(--interactive-accent)',
-                            color: 'var(--text-on-accent)',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '4px',
-                            cursor: loading ? 'wait' : 'pointer',
-                            opacity: loading ? 0.7 : 1
-                        }}
+                        disabled={true}
+                        className="btn-primary btn-pro-disabled"
+                        title={t.proFeature}
                     >
-                        {loading ? 'Scanning...' : 'Scan All with AI'}
+                        <svg
+                            className="btn-icon"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path d="M9 12l2 2 4-4" />
+                        </svg>
+                        <span className="btn-text">{t.scanAllBtn}</span>
+                        <span className="btn-pro-badge">Pro</span>
                     </button>
                 </div>
             </div>
@@ -186,8 +223,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig }) => {
                     scanningPaths={scanningPaths}
                     language={aiConfig?.language || 'en'}
                     allFolders={allFolders}
+                    onOpenFile={(path) => adapter.openFile(path)}
                 />
             )}
-        </div>
+            </div>
+        </>
     );
 };

@@ -19,25 +19,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
     };
 
     return (
-        <div className="chat-input-area" style={{ padding: '10px', borderTop: '1px solid var(--background-modifier-border)' }}>
+        <div className="chat-input-area">
             <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
                 placeholder="Type a message..."
-                style={{
-                    width: '100%',
-                    minHeight: '50px',
-                    background: 'var(--background-primary)',
-                    color: 'var(--text-normal)',
-                    border: '1px solid var(--background-modifier-border)',
-                    borderRadius: '4px',
-                    padding: '8px',
-                    resize: 'vertical'
-                }}
             />
-            <div style={{ fontSize: '0.8em', opacity: 0.6, marginTop: '4px', textAlign: 'right' }}>
+            <div className="chat-input-hint">
                 Press Enter to send, Shift+Enter for new line
             </div>
         </div>

@@ -1,11 +1,11 @@
 {
-    "name": "obsidian-inbox-organizer",
-    "version": "1.0.0",
+    "name": "inbox-ai-organizer",
+    "version": "0.1.0",
     "description": "AI-powered inbox organization for Obsidian",
     "main": "main.js",
     "scripts": {
         "dev": "vite",
-        "build": "vite build -c vite.config.prod.mjs",
+        "build": "vite build -c vite.config.prod.mjs && cp styles.css obsidian-release/styles.css",
         "dev:plugin": "tsc -w"
     },
     "dependencies": {

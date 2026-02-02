@@ -2,7 +2,7 @@ import { DataProvider, FileMetadata } from './types';
 
 export class WebAdapter implements DataProvider {
     async loadInboxFiles(inboxPath: string): Promise<FileMetadata[]> {
-        console.log(`[Mock] Loading files from ${inboxPath}`);
+        // Mock: Loading files from inbox
         return [
             { path: 'Inbox/Note1.md', name: 'Note1.md', content: 'Meeting notes about project Alpha' },
             { path: 'Inbox/Idea.md', name: 'Idea.md', content: 'Buy milk and eggs' }
@@ -10,25 +10,18 @@ export class WebAdapter implements DataProvider {
     }
 
     async moveFile(path: string, targetPath: string): Promise<void> {
-        console.log(`[Mock] Moving ${path} to ${targetPath}`);
+        // Mock: Moving file
     }
 
     async updateFrontmatter(path: string, data: Record<string, any>): Promise<void> {
-        console.log(`[Mock] Updating frontmatter for ${path}:`, data);
-        if (data.tags) {
-            const newTags = Array.isArray(data.tags) ? data.tags : [data.tags];
-            console.log(`[Mock Logic] Merging tags: Existing (simulated) + [${newTags.join(', ')}]`);
-            console.log(`[Mock Logic] Result would be: [..., ${newTags.join(', ')}]`);
-        }
+        // Mock: Updating frontmatter
     }
 
     getAllTags(): string[] {
-        console.log('[Mock] Getting all tags');
         return ['#project', '#personal', '#work', '#todo', '#reference', '#archive', '#meeting', '#idea'];
     }
 
     getFolderTree(): string {
-        console.log('[Mock] Getting folder tree');
         return `- 1. Projects/
   - Project-Alpha/
   - Project-Beta/
@@ -65,5 +58,9 @@ export class WebAdapter implements DataProvider {
     onInboxChange(inboxPath: string, callback: () => void): () => void {
         // Web adapter doesn't support real-time file watching
         return () => { };
+    }
+
+    openFile(path: string): void {
+        // Mock: Would open file in real environment
     }
 }

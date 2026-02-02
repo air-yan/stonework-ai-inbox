@@ -32,5 +32,7 @@ export interface DataProvider {
     getAllFolders(): string[];
     // 文件监听
     onInboxChange(inboxPath: string, callback: () => void): () => void;
+    // 打开文件（类似双链点击效果）
+    openFile(path: string): void;
 }
 
