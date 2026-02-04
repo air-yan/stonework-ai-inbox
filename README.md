@@ -19,6 +19,8 @@ Stonework AI: Inbox is an AI-powered Obsidian plugin that helps you automaticall
 - **Real-time Monitoring**: Automatically refreshes when files change in the Inbox
 - **Multi-language Support**: Interface available in English and Chinese
 
+<img width="2468" height="1585" alt="image" src="https://github.com/user-attachments/assets/3c0571da-6238-4ce3-823b-c28a91771e22" />
+
 ### Installation
 
 1. Download the latest release from the releases page
@@ -35,6 +37,9 @@ Stonework AI: Inbox is an AI-powered Obsidian plugin that helps you automaticall
    - **Model Name**: The model to use (e.g., `deepseek/deepseek-chat`, `gpt-4o`)
 3. Set your **Inbox Path** (default: `Inbox`)
 4. Choose your preferred **Language**
+
+<img width="1235" height="969" alt="image" src="https://github.com/user-attachments/assets/b042ea0a-4b5a-4bac-beb5-0af0d30c2aff" />
+
 
 ### Usage
 
