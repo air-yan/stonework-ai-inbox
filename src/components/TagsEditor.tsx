@@ -27,20 +27,20 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({ tags, onChange, highligh
     };
 
     return (
-        <div className="inbox-ai-tags-editor">
+        <div className="sai-tags-editor">
             {tags.map((tag, index) => {
                 const isHighlight = highlightTags.includes(tag);
                 return (
                     <span
                         key={index}
-                        className={`inbox-ai-tag ${isHighlight ? 'highlight' : ''}`}
+                        className={`sai-tag ${isHighlight ? 'sai-highlight' : ''}`}
                     >
-                        {isHighlight && <span className="new-indicator">*</span>}
+                        {isHighlight && <span className="sai-new-indicator">*</span>}
                         {tag}
-                        {isHighlight && <span className="new-label">NEW</span>}
+                        {isHighlight && <span className="sai-new-label">NEW</span>}
                         <button
                             onClick={() => handleRemoveTag(index)}
-                            className="remove-btn"
+                            className="sai-remove-btn"
                             title="Remove tag"
                         >
                             x
@@ -54,7 +54,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({ tags, onChange, highligh
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleAddTag}
                 placeholder="+ Add tag"
-                className="inbox-ai-tag-input"
+                className="sai-tag-input"
             />
         </div>
     );

@@ -61,7 +61,7 @@ interface SettingsFormProps {
 
 // Section Header Component
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
-    <h4 className="settings-section-header">{title}</h4>
+    <h4 className="sai-settings-section-header">{title}</h4>
 );
 
 // Setting Item Component
@@ -70,9 +70,9 @@ const SettingItem: React.FC<{
     description?: string;
     children: React.ReactNode
 }> = ({ label, description, children }) => (
-    <div className="settings-item">
+    <div className="sai-settings-item">
         <label>{label}</label>
-        {description && <div className="description">{description}</div>}
+        {description && <div className="sai-description">{description}</div>}
         {children}
     </div>
 );
@@ -126,23 +126,23 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     };
 
     return (
-        <div className="settings-form">
+        <div className="sai-settings-form">
             {/* Tab Navigation */}
-            <div className="settings-tabs">
+            <div className="sai-settings-tabs">
                 <button
-                    className={`settings-tab ${activeTab === 'general' ? 'active' : ''}`}
+                    className={`sai-settings-tab ${activeTab === 'general' ? 'sai-active' : ''}`}
                     onClick={() => setActiveTab('general')}
                 >
                     {t.tabs.general}
                 </button>
                 <button
-                    className={`settings-tab ${activeTab === 'aiModel' ? 'active' : ''}`}
+                    className={`sai-settings-tab ${activeTab === 'aiModel' ? 'sai-active' : ''}`}
                     onClick={() => setActiveTab('aiModel')}
                 >
                     {t.tabs.aiModel}
                 </button>
                 <button
-                    className={`settings-tab ${activeTab === 'inbox' ? 'active' : ''}`}
+                    className={`sai-settings-tab ${activeTab === 'inbox' ? 'sai-active' : ''}`}
                     onClick={() => setActiveTab('inbox')}
                 >
                     {t.tabs.inbox}
@@ -150,15 +150,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
             </div>
 
             {/* Tab Content */}
-            <div className="settings-tab-content">
+            <div className="sai-settings-tab-content">
                 {/* General Tab */}
                 {activeTab === 'general' && (
-                    <div className="settings-tab-panel">
+                    <div className="sai-settings-tab-panel">
                         <SettingItem label={t.language} description={t.languageDesc}>
                             <select
                                 value={language}
                                 onChange={e => setLanguage(e.target.value as 'en' | 'zh')}
-                                className="settings-select"
+                                className="sai-settings-select"
                             >
                                 <option value="en">English</option>
                                 <option value="zh">中文 (Chinese)</option>
@@ -169,7 +169,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
                 {/* AI Model Tab */}
                 {activeTab === 'aiModel' && (
-                    <div className="settings-tab-panel">
+                    <div className="sai-settings-tab-panel">
                         <div style={{
                             marginBottom: '20px',
                             padding: '10px 12px',
@@ -192,7 +192,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                                 value={apiKey}
                                 onChange={e => setApiKey(e.target.value)}
                                 placeholder="sk-..."
-                                className="settings-input"
+                                className="sai-settings-input"
                             />
                         </SettingItem>
 
@@ -202,7 +202,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                                 value={baseURL}
                                 onChange={e => setBaseURL(e.target.value)}
                                 placeholder="https://api.openai.com/v1"
-                                className="settings-input"
+                                className="sai-settings-input"
                             />
                         </SettingItem>
 
@@ -212,7 +212,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                                 value={modelName}
                                 onChange={e => setModelName(e.target.value)}
                                 placeholder="gpt-3.5-turbo, claude-3-opus, etc."
-                                className="settings-input"
+                                className="sai-settings-input"
                             />
                         </SettingItem>
                     </div>
@@ -220,9 +220,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
                 {/* Inbox Tab */}
                 {activeTab === 'inbox' && (
-                    <div className="settings-tab-panel">
+                    <div className="sai-settings-tab-panel">
                         <SettingItem label={t.inboxPath} description={t.inboxPathDesc}>
-                            <div className="inbox-ai-relative">
+                            <div className="sai-relative">
                                 <input
                                     type="text"
                                     value={inboxPath}
@@ -233,11 +233,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                                     onFocus={() => setShowFolderSuggestions(true)}
                                     onBlur={() => setTimeout(() => setShowFolderSuggestions(false), 200)}
                                     placeholder="Inbox"
-                                    className="settings-input"
+                                    className="sai-settings-input"
                                 />
                                 {/* Folder suggestions dropdown */}
                                 {showFolderSuggestions && filteredFolders.length > 0 && (
-                                    <div className="settings-folder-suggestions">
+                                    <div className="sai-settings-folder-suggestions">
                                         {filteredFolders.map(folder => (
                                             <div
                                                 key={folder}
@@ -245,7 +245,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                                                     e.preventDefault();
                                                     handleFolderSelect(folder);
                                                 }}
-                                                className="settings-folder-suggestion"
+                                                className="sai-settings-folder-suggestion"
                                             >
                                                 {folder}
                                             </div>

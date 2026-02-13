@@ -1,14 +1,11 @@
-import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, ItemView, Notice } from 'obsidian';
+import { App, Plugin, PluginSettingTab, WorkspaceLeaf, ItemView, Notice } from 'obsidian';
 import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { InboxView } from './views/InboxView';
 import { SettingsForm } from './components/SettingsForm';
 import { ObsAdapter } from './adapters/ObsAdapter';
-import { ChatView, VIEW_TYPE_CHAT } from './views/ChatView';
 
 const VIEW_TYPE_INBOX = 'inbox-organizer-view';
-const INBOX_VIEW_TYPE = VIEW_TYPE_INBOX;
-const CHAT_VIEW_TYPE = VIEW_TYPE_CHAT;
 
 interface PluginSettings {
     apiKey: string;
@@ -28,20 +25,8 @@ const DEFAULT_SETTINGS: PluginSettings = {
 
 export default class InboxPlugin extends Plugin {
     settings: PluginSettings;
-    private originalWarn: typeof console.warn;
 
     async onload() {
-        // 过滤 AI SDK 的兼容性警告
-        this.originalWarn = console.warn;
-        console.warn = (...args) => {
-            if (typeof args[0] === 'string' &&
-                args[0].includes('AI SDK Warning') &&
-                args[0].includes('specificationVersion')) {
-                return;
-            }
-            this.originalWarn.apply(console, args);
-        };
-
         await this.loadSettings();
 
         this.registerView(
@@ -49,44 +34,21 @@ export default class InboxPlugin extends Plugin {
             (leaf) => new InboxViewLeaf(leaf, this)
         );
 
-        this.registerView(
-            VIEW_TYPE_CHAT,
-            (leaf) => new ChatView(leaf, this)
-        );
-
         this.addRibbonIcon('archive', 'Open inbox organizer', () => {
             this.activateView();
         });
 
-        this.addRibbonIcon('bot', 'Open second brain assistant', () => {
-            this.activateChatView();
-        });
-
-        // Add commands for command palette (Ctrl+P)
         this.addCommand({
             id: 'open-inbox-organizer',
             name: 'Open inbox organizer',
             callback: () => this.activateView()
         });
 
-        this.addCommand({
-            id: 'open-chat-assistant',
-            name: 'Open second brain assistant',
-            callback: () => this.activateChatView()
-        });
-
         this.addSettingTab(new InboxSettingTab(this.app, this));
     }
 
     onunload() {
-        // 还原 console.warn
-        if (this.originalWarn) {
-            console.warn = this.originalWarn;
-        }
-
-        // 关闭所有视图（Obsidian 会自动清理已注册的视图）
-        this.app.workspace.detachLeavesOfType(INBOX_VIEW_TYPE);
-        this.app.workspace.detachLeavesOfType(CHAT_VIEW_TYPE);
+        this.app.workspace.detachLeavesOfType(VIEW_TYPE_INBOX);
     }
 
     async loadSettings() {
@@ -100,16 +62,8 @@ export default class InboxPlugin extends Plugin {
     }
 
     refreshAllViews() {
-        // Refresh Inbox views
         this.app.workspace.getLeavesOfType(VIEW_TYPE_INBOX).forEach(leaf => {
             const view = leaf.view as InboxViewLeaf;
-            if (view && view.refresh) {
-                view.refresh();
-            }
-        });
-        // Refresh Chat views
-        this.app.workspace.getLeavesOfType(VIEW_TYPE_CHAT).forEach(leaf => {
-            const view = leaf.view as ChatView;
             if (view && view.refresh) {
                 view.refresh();
             }
@@ -133,24 +87,6 @@ export default class InboxPlugin extends Plugin {
         }
     }
 
-    async activateChatView() {
-        const { workspace } = this.app;
-        let leaf: WorkspaceLeaf | null = null;
-        const leaves = workspace.getLeavesOfType(VIEW_TYPE_CHAT);
-
-        if (leaves.length > 0) {
-            const l = leaves[0];
-            workspace.revealLeaf(l);
-            leaf = l;
-        } else {
-            // Open in right sidebar
-            const rightLeaf = workspace.getRightLeaf(false);
-            if (rightLeaf) {
-                await rightLeaf.setViewState({ type: VIEW_TYPE_CHAT, active: true });
-                workspace.revealLeaf(rightLeaf);
-            }
-        }
-    }
 }
 
 class InboxViewLeaf extends ItemView {

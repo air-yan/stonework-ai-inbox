@@ -1,9 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
+
+/** Copy static assets to obsidian-release after build */
+function copyReleaseAssets() {
+    return {
+        name: 'copy-release-assets',
+        closeBundle() {
+            const outDir = 'obsidian-release';
+            fs.copyFileSync('styles.css', path.join(outDir, 'styles.css'));
+            fs.copyFileSync('manifest.json', path.join(outDir, 'manifest.json'));
+        }
+    };
+}
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), copyReleaseAssets()],
     build: {
         lib: {
             entry: path.resolve(__dirname, 'src/main.tsx'),

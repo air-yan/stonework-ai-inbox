@@ -58,7 +58,7 @@ export const ChatPanel: React.FC<{ aiService: AIService; app?: App }> = ({ aiSer
     };
 
     return (
-        <div className="chat-panel">
+        <div className="sai-chat-panel">
             <MessageList messages={messages} />
             <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>

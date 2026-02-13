@@ -35,11 +35,11 @@ const WebApp = () => {
     } as unknown as App;
 
     return (
-        <div className="web-app-layout">
-            <div className="web-app-main">
+        <div className="sai-web-app-layout">
+            <div className="sai-web-app-main">
                 <InboxView adapter={new WebAdapter()} />
             </div>
-            <div className="web-app-sidebar">
+            <div className="sai-web-app-sidebar">
                 <ChatPanel aiService={aiService} app={mockApp} />
             </div>
         </div>

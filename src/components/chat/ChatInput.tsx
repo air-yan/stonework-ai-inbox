@@ -19,7 +19,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
     };
 
     return (
-        <div className="chat-input-area">
+        <div className="sai-chat-input-area">
             <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -27,7 +27,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
                 disabled={disabled}
                 placeholder="Type a message..."
             />
-            <div className="chat-input-hint">
+            <div className="sai-chat-input-hint">
                 Press Enter to send, Shift+Enter for new line
             </div>
         </div>

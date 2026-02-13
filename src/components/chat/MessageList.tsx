@@ -9,13 +9,13 @@ export const MessageList: React.FC<{ messages: CoreMessage[] }> = ({ messages })
     }, [messages]);
 
     return (
-        <div className="chat-message-list">
+        <div className="sai-chat-message-list">
             {messages.map((m, i) => (
-                <div key={i} className={`chat-message ${m.role}`}>
-                    <strong className="role-label">
+                <div key={i} className={`sai-chat-message sai-${m.role}`}>
+                    <strong className="sai-role-label">
                         {m.role === 'user' ? 'You' : 'AI'}
                     </strong>
-                    <div className="inbox-ai-content">{m.content as string}</div>
+                    <div className="sai-content">{m.content as string}</div>
                 </div>
             ))}
             <div ref={bottomRef} />

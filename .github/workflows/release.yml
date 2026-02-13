@@ -1,0 +1,40 @@
+name: Release Obsidian Plugin
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build plugin
+        run: npx vite build -c vite.config.prod.mjs
+
+      - name: Copy release assets
+        run: |
+          cp styles.css obsidian-release/styles.css
+          cp manifest.json obsidian-release/manifest.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            obsidian-release/main.js
+            obsidian-release/manifest.json
+            obsidian-release/styles.css

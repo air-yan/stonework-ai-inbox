@@ -235,22 +235,22 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
     };
 
     const renderFolderPath = (path: string) => {
-        if (!path) return <span className="inbox-ai-text-muted">{t.root}</span>;
+        if (!path) return <span className="sai-text-muted">{t.root}</span>;
         const parts = path.split('/');
         const fileName = parts.pop();
         const parentPath = parts.join('/') + (parts.length > 0 ? '/' : '');
 
         return (
-            <span className="folder-path">
-                <span className="parent">{parentPath}</span>
-                <span className="name">{fileName}</span>
+            <span className="sai-folder-path">
+                <span className="sai-parent">{parentPath}</span>
+                <span className="sai-name">{fileName}</span>
             </span>
         );
     };
 
     return (
-        <div className="org-table-container">
-            <table className="org-table">
+        <div className="sai-org-table-container">
+            <table className="sai-org-table">
                 <thead>
                     <tr>
                         <th style={{ width: '12%' }}>{t.file}</th>
@@ -277,7 +277,7 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                 <td>
                                     <div
                                         onClick={() => onOpenFile?.(file.path)}
-                                        className={`org-table-filename ${onOpenFile ? '' : 'no-link'}`}
+                                        className={`sai-org-table-filename ${onOpenFile ? '' : 'sai-no-link'}`}
                                         title={file.path}
                                     >
                                         {file.name}
@@ -286,20 +286,20 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
 
                                 {/* Manual Folder Column */}
                                 <td>
-                                    <div className="manual-folder-selector">
+                                    <div className="sai-manual-folder-selector">
                                         {/* Selected folder or dropdown trigger */}
                                         <div
                                             onClick={(e) => { e.stopPropagation(); toggleManualDropdown(file.path); }}
-                                            className={`manual-folder-trigger ${hasManualFolder ? 'selected' : ''}`}
+                                            className={`sai-manual-folder-trigger ${hasManualFolder ? 'sai-selected' : ''}`}
                                         >
                                             <FolderIcon />
-                                            <span className={hasManualFolder ? '' : 'placeholder'}>
+                                            <span className={hasManualFolder ? '' : 'sai-placeholder'}>
                                                 {hasManualFolder ? edit?.manualFolderPath : t.selectFolder}
                                             </span>
                                             {hasManualFolder && (
                                                 <span
                                                     onClick={(e) => { e.stopPropagation(); clearManualFolder(file.path); }}
-                                                    className="clear-btn"
+                                                    className="sai-clear-btn"
                                                 >x</span>
                                             )}
                                         </div>
@@ -361,10 +361,10 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             return (
                                                 <div
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className="folder-dropdown"
+                                                    className="sai-folder-dropdown"
                                                 >
                                                     {/* Search input */}
-                                                    <div className="folder-dropdown-search">
+                                                    <div className="sai-folder-dropdown-search">
                                                         <input
                                                             type="text"
                                                             value={searchValue}
@@ -382,7 +382,7 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                                     {hasCreateOption && (
                                                         <div
                                                             onClick={() => handleManualFolderSelect(file.path, searchValue)}
-                                                            className={`folder-dropdown-create ${currentHighlight === 0 ? 'highlighted' : ''}`}
+                                                            className={`sai-folder-dropdown-create ${currentHighlight === 0 ? 'sai-highlighted' : ''}`}
                                                             onMouseEnter={() => setHighlightIndex(prev => ({ ...prev, [file.path]: 0 }))}
                                                         >
                                                             <PlusIcon /> {t.createFolder} "{searchValue}"
@@ -396,7 +396,7 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                                             <div
                                                                 key={folder}
                                                                 onClick={() => handleManualFolderSelect(file.path, folder)}
-                                                                className={`folder-dropdown-item ${isHighlighted ? 'highlighted' : ''}`}
+                                                                className={`sai-folder-dropdown-item ${isHighlighted ? 'sai-highlighted' : ''}`}
                                                                 onMouseEnter={() => setHighlightIndex(prev => ({ ...prev, [file.path]: itemIndex }))}
                                                             >
                                                                 <FolderIcon /> {folder}
@@ -410,21 +410,21 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                 </td>
 
                                 {/* AI Target Folder Column */}
-                                <td className={hasManualFolder ? 'inbox-ai-muted' : ''}>
+                                <td className={hasManualFolder ? 'sai-muted' : ''}>
                                     {suggestion?.folderSuggestions ? (
-                                        <div className="ai-folder-suggestions">
+                                        <div className="sai-ai-folder-suggestions">
                                             {suggestion.folderSuggestions.map((fs, idx) => {
                                                 const isSelected = selectedIndex === idx;
                                                 return (
                                                     <div
                                                         key={idx}
                                                         onClick={() => handleFolderSelect(file.path, idx)}
-                                                        className={`ai-folder-option ${isSelected ? 'selected' : ''}`}
+                                                        className={`sai-ai-folder-option ${isSelected ? 'sai-selected' : ''}`}
                                                     >
                                                         <FolderIcon />
-                                                        <span className="inbox-ai-text-sm">{renderFolderPath(fs.folder)}</span>
+                                                        <span className="sai-text-sm">{renderFolderPath(fs.folder)}</span>
                                                         {fs.isNew && (
-                                                            <span className="new-badge">
+                                                            <span className="sai-new-badge">
                                                                 <SparklesIcon /> {t.new}
                                                             </span>
                                                         )}
@@ -433,12 +433,12 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             })}
                                         </div>
                                     ) : isScanning ? (
-                                        <div className="scanning-indicator">
-                                            <div className="spinner" />
+                                        <div className="sai-scanning-indicator">
+                                            <div className="sai-spinner" />
                                             <span>{t.analysing}</span>
                                         </div>
                                     ) : (
-                                        <span className="inbox-ai-text-faint">-</span>
+                                        <span className="sai-text-faint">-</span>
                                     )}
                                 </td>
 
@@ -451,31 +451,31 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             highlightTags={suggestion.newTags}
                                         />
                                     ) : (
-                                        <span className="inbox-ai-text-faint">-</span>
+                                        <span className="sai-text-faint">-</span>
                                     )}
                                 </td>
 
                                 {/* Reason Column */}
                                 <td>
                                     {suggestion?.reason ? (
-                                        <div className="ai-reason">{suggestion.reason}</div>
+                                        <div className="sai-ai-reason">{suggestion.reason}</div>
                                     ) : (
-                                        <span className="inbox-ai-text-faint">-</span>
+                                        <span className="sai-text-faint">-</span>
                                     )}
                                 </td>
 
                                 {/* Actions Column */}
                                 <td>
-                                    <div className="actions-column">
+                                    <div className="sai-actions-column">
                                         {/* AI Scan Button - show when no suggestion and no manual folder */}
                                         {onScanRow && !suggestion && !hasManualFolder && (
                                             <button
                                                 onClick={() => onScanRow(file.path, file.content)}
                                                 disabled={isScanning}
-                                                className="btn-outline-accent"
+                                                className="sai-btn-outline-accent"
                                             >
                                                 {isScanning ? (
-                                                    <div className="spinner" />
+                                                    <div className="sai-spinner" />
                                                 ) : (
                                                     <ScanIcon />
                                                 )}
@@ -488,13 +488,13 @@ export const OrganizationalTable: React.FC<OrganizationalTableProps & { language
                                             <>
                                                 <button
                                                     onClick={() => handleAccept(file.path, suggestion)}
-                                                    className="btn-accept"
+                                                    className="sai-btn-accept"
                                                 >
                                                     {t.accept}
                                                 </button>
                                                 <button
                                                     onClick={() => onIgnore(file.path)}
-                                                    className="btn-secondary"
+                                                    className="sai-btn-secondary"
                                                 >
                                                     {t.ignore}
                                                 </button>

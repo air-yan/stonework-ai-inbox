@@ -178,24 +178,24 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
     return (
         <>
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            <div className="inbox-view">
-                <div className="inbox-view-header">
-                    <h1>Stonework AI: Inbox <span className="version">v0.1.0</span></h1>
-                <div className="inbox-view-actions">
+            <div className="sai-inbox-view">
+                <div className="sai-inbox-view-header">
+                    <h1>Stonework AI: Inbox <span className="sai-version">v0.1.0</span></h1>
+                <div className="sai-inbox-view-actions">
                     {/* Batch scan button - hidden for future Pro feature */}
                     {/* {loading && (
-                        <span className="inbox-view-status">
+                        <span className="sai-inbox-view-status">
                             Scanning {scanningPaths.length} files...
                         </span>
                     )}
                     <button
                         onClick={handleScanAll}
                         disabled={true}
-                        className="btn-primary btn-pro-disabled"
+                        className="sai-btn-primary sai-btn-pro-disabled"
                         title={t.proFeature}
                     >
                         <svg
-                            className="btn-icon"
+                            className="sai-btn-icon"
                             width="16"
                             height="16"
                             viewBox="0 0 24 24"
@@ -206,8 +206,8 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             <path d="M9 12l2 2 4-4" />
                         </svg>
-                        <span className="btn-text">{t.scanAllBtn}</span>
-                        <span className="btn-pro-badge">Pro</span>
+                        <span className="sai-btn-text">{t.scanAllBtn}</span>
+                        <span className="sai-btn-pro-badge">Pro</span>
                     </button> */}
                 </div>
             </div>

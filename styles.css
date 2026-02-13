@@ -1,37 +1,38 @@
-/* Inbox AI Organizer - Styles */
+/* Stonework AI: Inbox - Styles */
+/* All class names prefixed with "sai-" to avoid conflicts with other plugins */
 /* Using Obsidian CSS Variables for theme compatibility */
 
 /* ========================================
    Inbox View
    ======================================== */
 
-.inbox-view {
+.sai-inbox-view {
     padding: 8px 12px;
 }
 
-.inbox-view-header {
+.sai-inbox-view-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.inbox-view-header h1 {
+.sai-inbox-view-header h1 {
     margin: 0;
 }
 
-.inbox-view-header .version {
+.sai-inbox-view-header .sai-version {
     font-size: 0.6em;
     color: var(--text-muted);
 }
 
-.inbox-view-actions {
+.sai-inbox-view-actions {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.inbox-view-status {
+.sai-inbox-view-status {
     color: var(--text-muted);
     font-size: 0.9em;
 }
@@ -40,7 +41,7 @@
    Buttons
    ======================================== */
 
-.btn-primary {
+.sai-btn-primary {
     background: var(--interactive-accent);
     color: var(--text-on-accent);
     border: none;
@@ -52,17 +53,17 @@
     transition: opacity 0.15s;
 }
 
-.btn-primary:hover {
+.sai-btn-primary:hover {
     opacity: 0.9;
 }
 
-.btn-primary:disabled {
+.sai-btn-primary:disabled {
     cursor: wait;
     opacity: 0.7;
 }
 
 /* Pro Feature Button (disabled state) */
-.btn-pro-disabled {
+.sai-btn-pro-disabled {
     opacity: 0.5;
     cursor: not-allowed;
     position: relative;
@@ -73,15 +74,15 @@
     pointer-events: none;
 }
 
-.btn-pro-disabled .btn-icon {
+.sai-btn-pro-disabled .sai-btn-icon {
     opacity: 0.6;
 }
 
-.btn-pro-disabled .btn-text {
+.sai-btn-pro-disabled .sai-btn-text {
     opacity: 0.7;
 }
 
-.btn-pro-badge {
+.sai-btn-pro-badge {
     font-size: 0.7em;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 3px 8px;
@@ -93,7 +94,7 @@
     text-transform: uppercase;
 }
 
-.btn-secondary {
+.sai-btn-secondary {
     background: transparent;
     color: var(--text-muted);
     border: 1px solid var(--background-modifier-border);
@@ -104,11 +105,11 @@
     transition: background 0.15s;
 }
 
-.btn-secondary:hover {
+.sai-btn-secondary:hover {
     background: var(--background-modifier-hover);
 }
 
-.btn-outline-accent {
+.sai-btn-outline-accent {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -123,18 +124,18 @@
     transition: background 0.15s;
 }
 
-.btn-outline-accent:hover {
+.sai-btn-outline-accent:hover {
     background: rgba(var(--interactive-accent-rgb), 0.1);
 }
 
-.btn-outline-accent:disabled {
+.sai-btn-outline-accent:disabled {
     background: var(--background-modifier-border);
     color: var(--text-muted);
     border: none;
     cursor: wait;
 }
 
-.btn-accept {
+.sai-btn-accept {
     background: var(--interactive-accent);
     color: var(--text-on-accent);
     border: none;
@@ -146,7 +147,7 @@
     transition: opacity 0.15s;
 }
 
-.btn-accept:hover {
+.sai-btn-accept:hover {
     opacity: 0.9;
 }
 
@@ -154,42 +155,42 @@
    Organizational Table
    ======================================== */
 
-.org-table-container {
+.sai-org-table-container {
     border-radius: 8px;
     border: 1px solid var(--background-modifier-border);
 }
 
-.org-table {
+.sai-org-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
 }
 
-.org-table thead {
+.sai-org-table thead {
     background: var(--background-secondary);
 }
 
-.org-table th {
+.sai-org-table th {
     padding: 6px 10px;
     font-weight: 600;
     color: var(--text-muted);
 }
 
-.org-table tbody {
+.sai-org-table tbody {
     background: var(--background-primary);
 }
 
-.org-table td {
+.sai-org-table td {
     padding: 8px 10px;
     vertical-align: top;
 }
 
-.org-table tr {
+.sai-org-table tr {
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
 /* File Name */
-.org-table-filename {
+.sai-org-table-filename {
     font-weight: 500;
     color: var(--link-color, var(--text-accent));
     cursor: pointer;
@@ -197,25 +198,25 @@
     transition: color 0.15s;
 }
 
-.org-table-filename:hover {
+.sai-org-table-filename:hover {
     text-decoration: underline;
 }
 
-.org-table-filename.no-link {
+.sai-org-table-filename.sai-no-link {
     color: var(--text-normal);
     cursor: default;
 }
 
-.org-table-filename.no-link:hover {
+.sai-org-table-filename.sai-no-link:hover {
     text-decoration: none;
 }
 
 /* Manual Folder Selector */
-.manual-folder-selector {
+.sai-manual-folder-selector {
     position: relative;
 }
 
-.manual-folder-trigger {
+.sai-manual-folder-trigger {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -227,27 +228,27 @@
     transition: all 0.15s;
 }
 
-.manual-folder-trigger.selected {
+.sai-manual-folder-trigger.sai-selected {
     border-color: var(--interactive-accent);
 }
 
-.manual-folder-trigger span {
+.sai-manual-folder-trigger span {
     flex: 1;
     font-size: 0.9em;
 }
 
-.manual-folder-trigger .placeholder {
+.sai-manual-folder-trigger .sai-placeholder {
     color: var(--text-muted);
 }
 
-.manual-folder-trigger .clear-btn {
+.sai-manual-folder-trigger .sai-clear-btn {
     color: var(--text-muted);
     cursor: pointer;
     padding: 2px;
 }
 
 /* Folder Dropdown */
-.folder-dropdown {
+.sai-folder-dropdown {
     position: absolute;
     top: 100%;
     left: 0;
@@ -263,12 +264,12 @@
     z-index: 100;
 }
 
-.folder-dropdown-search {
+.sai-folder-dropdown-search {
     padding: 8px;
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.folder-dropdown-search input {
+.sai-folder-dropdown-search input {
     width: 100%;
     padding: 6px 10px;
     border: 1px solid var(--background-modifier-border);
@@ -279,7 +280,7 @@
     outline: none;
 }
 
-.folder-dropdown-create {
+.sai-folder-dropdown-create {
     padding: 8px 12px;
     cursor: pointer;
     color: var(--interactive-accent);
@@ -292,12 +293,12 @@
     transition: background 0.15s;
 }
 
-.folder-dropdown-create:hover,
-.folder-dropdown-create.highlighted {
+.sai-folder-dropdown-create:hover,
+.sai-folder-dropdown-create.sai-highlighted {
     background: var(--background-modifier-hover);
 }
 
-.folder-dropdown-item {
+.sai-folder-dropdown-item {
     padding: 8px 12px;
     cursor: pointer;
     color: var(--text-normal);
@@ -309,19 +310,19 @@
     transition: background 0.15s;
 }
 
-.folder-dropdown-item:hover,
-.folder-dropdown-item.highlighted {
+.sai-folder-dropdown-item:hover,
+.sai-folder-dropdown-item.sai-highlighted {
     background: var(--background-modifier-hover);
 }
 
 /* AI Folder Suggestions */
-.ai-folder-suggestions {
+.sai-ai-folder-suggestions {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.ai-folder-option {
+.sai-ai-folder-option {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -333,25 +334,25 @@
     transition: all 0.15s;
 }
 
-.ai-folder-option.selected {
+.sai-ai-folder-option.sai-selected {
     border-color: var(--interactive-accent);
     background: var(--background-primary);
 }
 
-.ai-folder-option .folder-path {
+.sai-ai-folder-option .sai-folder-path {
     font-size: 0.85em;
 }
 
-.ai-folder-option .folder-path .parent {
+.sai-ai-folder-option .sai-folder-path .sai-parent {
     color: var(--text-muted);
 }
 
-.ai-folder-option .folder-path .name {
+.sai-ai-folder-option .sai-folder-path .sai-name {
     font-weight: 600;
     color: var(--text-normal);
 }
 
-.ai-folder-option .new-badge {
+.sai-ai-folder-option .sai-new-badge {
     font-size: 0.7em;
     font-weight: 600;
     color: var(--color-purple, #a855f7);
@@ -364,27 +365,27 @@
 }
 
 /* Scanning State */
-.scanning-indicator {
+.sai-scanning-indicator {
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--interactive-accent);
 }
 
-.scanning-indicator .spinner {
+.sai-scanning-indicator .sai-spinner {
     width: 14px;
     height: 14px;
     border: 2px solid transparent;
     border-top-color: currentColor;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: sai-spin 1s linear infinite;
 }
 
-.scanning-indicator span {
+.sai-scanning-indicator span {
     font-size: 0.85em;
 }
 
-@keyframes spin {
+@keyframes sai-spin {
     0% {
         transform: rotate(0deg);
     }
@@ -395,30 +396,30 @@
 }
 
 /* Reason Column */
-.ai-reason {
+.sai-ai-reason {
     font-size: 0.85em;
     color: var(--text-normal);
     line-height: 1.5;
 }
 
 /* Actions Column */
-.actions-column {
+.sai-actions-column {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
 /* Muted State */
-.inbox-ai-muted {
+.sai-muted {
     opacity: 0.4;
     pointer-events: none;
 }
 
-.inbox-ai-text-muted {
+.sai-text-muted {
     color: var(--text-muted);
 }
 
-.inbox-ai-text-faint {
+.sai-text-faint {
     color: var(--text-faint);
 }
 
@@ -426,14 +427,14 @@
    Tags Editor
    ======================================== */
 
-.inbox-ai-tags-editor {
+.sai-tags-editor {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
 }
 
-.inbox-ai-tag {
+.sai-tag {
     display: inline-flex;
     align-items: center;
     background: var(--interactive-accent);
@@ -446,26 +447,26 @@
     transition: all 0.2s;
 }
 
-.inbox-ai-tag.highlight {
+.sai-tag.sai-highlight {
     background: var(--color-green-soft, rgba(34, 197, 94, 0.15));
     color: var(--color-green, #22c55e);
     border-color: var(--color-green, #22c55e);
 }
 
-.inbox-ai-tag .new-indicator {
+.sai-tag .sai-new-indicator {
     font-size: 0.75em;
     font-weight: 600;
     opacity: 0.9;
 }
 
-.inbox-ai-tag .new-label {
+.sai-tag .sai-new-label {
     font-size: 0.65em;
     font-weight: 600;
     margin-left: 2px;
     opacity: 0.8;
 }
 
-.inbox-ai-tag .remove-btn {
+.sai-tag .sai-remove-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -482,11 +483,11 @@
     opacity: 0.7;
 }
 
-.inbox-ai-tag .remove-btn:hover {
+.sai-tag .sai-remove-btn:hover {
     opacity: 1;
 }
 
-.inbox-ai-tag-input {
+.sai-tag-input {
     background: transparent;
     border: 1px dashed var(--text-muted);
     border-radius: 12px;
@@ -497,7 +498,7 @@
     outline: none;
 }
 
-.inbox-ai-tag-input:focus {
+.sai-tag-input:focus {
     border-color: var(--interactive-accent);
 }
 
@@ -505,20 +506,20 @@
    Settings Form
    ======================================== */
 
-.settings-form {
+.sai-settings-form {
     padding: 0;
     max-width: 100%;
 }
 
 /* Settings Tabs */
-.settings-tabs {
+.sai-settings-tabs {
     display: flex;
     gap: 4px;
     margin-bottom: 32px;
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.settings-tab {
+.sai-settings-tab {
     padding: 10px 20px;
     background: transparent;
     border: none;
@@ -532,25 +533,25 @@
     position: relative;
 }
 
-.settings-tab:hover {
+.sai-settings-tab:hover {
     color: var(--text-normal);
     background: var(--background-modifier-hover);
 }
 
-.settings-tab.active {
+.sai-settings-tab.sai-active {
     color: var(--interactive-accent);
     border-bottom-color: var(--interactive-accent);
 }
 
-.settings-tab-content {
+.sai-settings-tab-content {
     min-height: 300px;
 }
 
-.settings-tab-panel {
-    animation: fadeIn 0.2s ease;
+.sai-settings-tab-panel {
+    animation: sai-fadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes sai-fadeIn {
     from {
         opacity: 0;
         transform: translateY(-8px);
@@ -562,7 +563,7 @@
     }
 }
 
-.settings-form h3 {
+.sai-settings-form h3 {
     margin: 0 0 24px 0;
     padding: 0;
     color: var(--text-normal);
@@ -570,7 +571,7 @@
     font-weight: 600;
 }
 
-.settings-section-header {
+.sai-settings-section-header {
     margin: 32px 0 16px 0;
     padding: 0;
     color: var(--text-muted);
@@ -580,18 +581,18 @@
     letter-spacing: 0.05em;
 }
 
-.settings-section-header:first-of-type {
+.sai-settings-section-header:first-of-type {
     margin-top: 0;
 }
 
-.settings-item {
+.sai-settings-item {
     margin-bottom: 24px;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.settings-item label {
+.sai-settings-item label {
     display: block;
     margin: 0;
     padding: 0;
@@ -600,14 +601,14 @@
     font-size: 0.95em;
 }
 
-.settings-item .description {
+.sai-settings-item .sai-description {
     font-size: 0.85em;
     color: var(--text-muted);
     line-height: 1.4;
     margin: 0;
 }
 
-.settings-input {
+.sai-settings-input {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid var(--background-modifier-border);
@@ -618,13 +619,13 @@
     transition: border-color 0.15s;
 }
 
-.settings-input:focus {
+.sai-settings-input:focus {
     outline: none;
     border-color: var(--interactive-accent);
     box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.1);
 }
 
-.settings-select {
+.sai-settings-select {
     padding: 8px 12px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
@@ -639,14 +640,14 @@
     transition: border-color 0.15s;
 }
 
-.settings-select:focus {
+.sai-settings-select:focus {
     outline: none;
     border-color: var(--interactive-accent);
     box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.1);
 }
 
 /* Folder Suggestions in Settings */
-.settings-folder-suggestions {
+.sai-settings-folder-suggestions {
     position: absolute;
     top: 100%;
     left: 0;
@@ -661,7 +662,7 @@
     z-index: 100;
 }
 
-.settings-folder-suggestion {
+.sai-settings-folder-suggestion {
     padding: 8px 12px;
     cursor: pointer;
     color: var(--text-normal);
@@ -672,11 +673,11 @@
     transition: background 0.15s;
 }
 
-.settings-folder-suggestion:hover {
+.sai-settings-folder-suggestion:hover {
     background: var(--background-modifier-hover);
 }
 
-.settings-save-btn {
+.sai-settings-save-btn {
     margin-top: 16px;
     background: var(--interactive-accent);
     color: var(--text-on-accent);
@@ -689,7 +690,7 @@
     transition: opacity 0.15s;
 }
 
-.settings-save-btn:hover {
+.sai-settings-save-btn:hover {
     opacity: 0.9;
 }
 
@@ -697,7 +698,7 @@
    Chat Panel
    ======================================== */
 
-.chat-panel {
+.sai-chat-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -705,13 +706,13 @@
 }
 
 /* Message List */
-.chat-message-list {
+.sai-chat-message-list {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.chat-message {
+.sai-chat-message {
     margin-bottom: 10px;
     padding: 8px;
     border-radius: 8px;
@@ -719,22 +720,22 @@
     word-wrap: break-word;
 }
 
-.chat-message.user {
+.sai-chat-message.sai-user {
     background: var(--interactive-accent);
     color: var(--text-normal);
     margin-left: auto;
     margin-right: 0;
 }
 
-.chat-message.assistant,
-.chat-message.system {
+.sai-chat-message.sai-assistant,
+.sai-chat-message.sai-system {
     background: var(--background-secondary);
     color: var(--text-normal);
     margin-left: 0;
     margin-right: auto;
 }
 
-.chat-message .role-label {
+.sai-chat-message .sai-role-label {
     display: block;
     font-size: 0.8em;
     font-weight: bold;
@@ -742,17 +743,17 @@
     margin-bottom: 4px;
 }
 
-.chat-message .inbox-ai-content {
+.sai-chat-message .sai-content {
     white-space: pre-wrap;
 }
 
 /* Chat Input */
-.chat-input-area {
+.sai-chat-input-area {
     padding: 10px;
     border-top: 1px solid var(--background-modifier-border);
 }
 
-.chat-input-area textarea {
+.sai-chat-input-area textarea {
     width: 100%;
     min-height: 50px;
     background: var(--background-primary);
@@ -764,12 +765,12 @@
     font-family: inherit;
 }
 
-.chat-input-area textarea:focus {
+.sai-chat-input-area textarea:focus {
     outline: none;
     border-color: var(--interactive-accent);
 }
 
-.chat-input-hint {
+.sai-chat-input-hint {
     font-size: 0.8em;
     opacity: 0.6;
     margin-top: 4px;
@@ -780,18 +781,18 @@
    Web Entry Layout
    ======================================== */
 
-.web-app-layout {
+.sai-web-app-layout {
     display: flex;
     height: 100vh;
     flex-direction: row;
 }
 
-.web-app-main {
+.sai-web-app-main {
     flex: 1;
     overflow: hidden;
 }
 
-.web-app-sidebar {
+.sai-web-app-sidebar {
     width: 400px;
     border-left: 1px solid var(--background-modifier-border);
 }
@@ -800,7 +801,7 @@
    Toast Notifications
    ======================================== */
 
-.toast-container {
+.sai-toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -811,7 +812,7 @@
     pointer-events: none;
 }
 
-.toast {
+.sai-toast {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -823,17 +824,17 @@
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     pointer-events: auto;
-    animation: slideInRight 0.3s ease, fadeIn 0.3s ease;
+    animation: sai-slideInRight 0.3s ease, sai-fadeIn 0.3s ease;
 }
 
-.toast-icon {
+.sai-toast-icon {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.toast-message {
+.sai-toast-message {
     flex: 1;
     font-size: 0.9em;
     line-height: 1.4;
@@ -841,7 +842,7 @@
     white-space: pre-wrap;
 }
 
-.toast-close {
+.sai-toast-close {
     flex-shrink: 0;
     background: transparent;
     border: none;
@@ -855,46 +856,46 @@
     transition: all 0.15s;
 }
 
-.toast-close:hover {
+.sai-toast-close:hover {
     background: var(--background-modifier-hover);
     color: var(--text-normal);
 }
 
 /* Toast Types */
-.toast-success {
+.sai-toast-success {
     border-left: 4px solid var(--color-green, #22c55e);
 }
 
-.toast-success .toast-icon {
+.sai-toast-success .sai-toast-icon {
     color: var(--color-green, #22c55e);
 }
 
-.toast-error {
+.sai-toast-error {
     border-left: 4px solid var(--color-red, #ef4444);
 }
 
-.toast-error .toast-icon {
+.sai-toast-error .sai-toast-icon {
     color: var(--color-red, #ef4444);
 }
 
-.toast-warning {
+.sai-toast-warning {
     border-left: 4px solid var(--color-orange, #f97316);
 }
 
-.toast-warning .toast-icon {
+.sai-toast-warning .sai-toast-icon {
     color: var(--color-orange, #f97316);
 }
 
-.toast-info {
+.sai-toast-info {
     border-left: 4px solid var(--interactive-accent);
 }
 
-.toast-info .toast-icon {
+.sai-toast-info .sai-toast-icon {
     color: var(--interactive-accent);
 }
 
 /* Animations */
-@keyframes slideInRight {
+@keyframes sai-slideInRight {
     from {
         transform: translateX(400px);
         opacity: 0;
@@ -906,13 +907,13 @@
 }
 
 /* ========================================
-   Utility Classes (namespaced)
+   Utility Classes
    ======================================== */
 
-.inbox-ai-text-sm {
+.sai-text-sm {
     font-size: 0.85em;
 }
 
-.inbox-ai-relative {
+.sai-relative {
     position: relative;
 }

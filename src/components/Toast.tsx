@@ -56,18 +56,18 @@ export const Toast: React.FC<ToastProps> = ({ message, type, duration = 4000, on
 
     return (
         <div 
-            className={`toast toast-${type}`}
+            className={`sai-toast sai-toast-${type}`}
             role="alert"
             aria-live="assertive"
         >
-            <div className="toast-icon">
+            <div className="sai-toast-icon">
                 {getIcon()}
             </div>
-            <div className="toast-message">
+            <div className="sai-toast-message">
                 {message}
             </div>
             <button 
-                className="toast-close"
+                className="sai-toast-close"
                 onClick={onClose}
                 aria-label="Close notification"
             >
@@ -87,7 +87,7 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
     return (
-        <div className="toast-container">
+        <div className="sai-toast-container">
             {toasts.map(toast => (
                 <Toast
                     key={toast.id}
