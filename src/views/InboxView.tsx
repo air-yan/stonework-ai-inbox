@@ -181,7 +181,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <div className="sai-inbox-view">
                 <div className="sai-inbox-view-header">
-                    <h1>Stonework AI: Inbox <span className="sai-version">v0.1.0</span></h1>
+                    <h1>Stonework AI: Inbox <span className="sai-version">v0.1.1</span></h1>
                 <div className="sai-inbox-view-actions">
                     {/* Batch scan button - hidden for future Pro feature */}
                     {/* {loading && (

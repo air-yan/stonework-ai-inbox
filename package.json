@@ -1,6 +1,6 @@
 {
     "name": "stonework-ai-inbox",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Your AI-powered Second Brain: Inbox organization and more.",
     "main": "main.js",
     "scripts": {
