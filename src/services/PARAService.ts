@@ -80,7 +80,8 @@ export class PARAService {
     async analyzeDocument(
         documentContent: string,
         allTags: string[],
-        folderTree: string
+        folderTree: string,
+        allFolders?: string[]
     ): Promise<PARAAnalysisResult> {
         // 构建 user prompt
         const userPrompt = this.buildUserPrompt(documentContent, allTags, folderTree);
@@ -101,8 +102,12 @@ export class PARAService {
                 prompt: userPrompt,
             });
 
-            // 解析 JSON
-            return this.parseJSONResponse(text);
+            // 解析 JSON，并用实际文件夹列表校验 isNew
+            const result = this.parseJSONResponse(text);
+            if (allFolders && allFolders.length > 0) {
+                this.validateIsNew(result, allFolders);
+            }
+            return result;
         } catch (error) {
             return {
                 folderSuggestions: [],
@@ -128,6 +133,32 @@ ${documentContent}
 \`\`\`
 
 请输出 JSON 格式的 PARA 分类建议。`;
+    }
+
+    /**
+     * 用实际文件夹列表校验 AI 返回的 isNew 字段，防止 AI 幻觉误判
+     */
+    private validateIsNew(result: PARAAnalysisResult, allFolders: string[]): void {
+        const normalizedFolders = allFolders.map(f => f.toLowerCase().replace(/\\/g, '/').replace(/\/+$/, ''));
+
+        for (const suggestion of result.folderSuggestions) {
+            const normalizedSuggestion = suggestion.folder.toLowerCase().replace(/\\/g, '/').replace(/\/+$/, '');
+
+            // 精确匹配：建议的路径完全等于已有路径
+            const exactMatch = normalizedFolders.includes(normalizedSuggestion);
+
+            // 前缀匹配：建议路径是某个已有路径的子路径（父目录存在）
+            const parentMatch = normalizedFolders.some(f => normalizedSuggestion.startsWith(f + '/'));
+
+            if (exactMatch) {
+                // 文件夹已存在，强制覆盖为 false
+                suggestion.isNew = false;
+            } else if (!parentMatch) {
+                // 连父目录都不存在，确实是新建
+                suggestion.isNew = true;
+            }
+            // 父目录存在但精确路径不存在的情况，保留 AI 的判断（isNew: true）
+        }
     }
 
     private parseJSONResponse(jsonText: string): PARAAnalysisResult {

@@ -113,9 +113,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ adapter, aiConfig, inboxPa
             // 获取 vault 的 tags 和 filetree - 仅获取文件夹结构
             const allTags = adapter.getAllTags();
             const folderTree = adapter.getFolderTree();
+            const folders = adapter.getAllFolders();
 
-            // 调用 PARA 服务分析
-            const result = await paraService.analyzeDocument(content, allTags, folderTree);
+            // 调用 PARA 服务分析（传入 allFolders 用于后验校验 isNew）
+            const result = await paraService.analyzeDocument(content, allTags, folderTree, folders);
 
             // 构建 suggestion 并更新状态
             const suggestion: OrganizationSuggestion = {
